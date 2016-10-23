@@ -1,0 +1,36 @@
+{
+  "name": "Bookmarks Manager and Viewer",
+  "short_name": "ibmanager",
+  "description": "An elegant bookmarks manager with fuzzy search and more",
+  "author": "InBasic",
+  "version": "0.1.0",
+  "manifest_version": 2,
+  "permissions": [
+    "storage",
+    "tabs",
+    "bookmarks",
+    "chrome://favicon/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": [
+      "common.js"
+    ]
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "data/icons/16.png",
+      "32": "data/icons/32.png"
+    },
+    "default_popup": "data/panel/index.html"
+  },
+  "homepage_url": "http://add0n.com/bookmarks-manager.html",
+  "icons": {
+    "16": "data/icons/16.png",
+    "48": "data/icons/48.png",
+    "128": "data/icons/128.png"
+  },
+  "web_accessible_resources": [
+    "favicon.ico"
+  ]
+}

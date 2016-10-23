@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="./jstree/themes/default/style.css" />
+    <link rel="stylesheet" href="./font/fontello.css">
+    <link rel="stylesheet" href="./index.css">
+  </head>
+  <body>
+    <div id="search">
+      <input type="search" placeholder="Fuzzy search">
+    </div>
+    <div id="tree"></div>
+    <div id="results">
+      <input type="button" value="&#xe801;">
+      <table>
+        <col width="250">
+        <tr id="tr">
+          <td></td>
+          <td></td>
+        </tr>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="toolbar">
+      <input type="button" value="Collapse" data-cmd="collapse">
+      <input type="button" value="Delete" data-cmd="delete">
+      <div class="menu-button">
+        <input type="button" value="Bookmark">
+        <ul>
+          <li data-cmd="create-folder">Create new Directory</li>
+          <li data-cmd="create-bookmark">Create new Bookmark</li>
+          <li data-cmd="create-from-tab">Bookmark this Tab</li>
+        </ul>
+      </div>
+      <input type="button" value="Validate" data-cmd="validate">
+      <span></span>
+    </div>
+    <div id="properties">
+      <form id="title"></form>
+      <form id="url"></form>
+      <table>
+        <tbody>
+          <tr>
+            <td>Title</td>
+            <td><input dir="auto" type="text" form="title"></td>
+            <td><input data-cmd="change" type="submit" value="&#xe800;" disabled="true" form="title"></td>
+          </tr>
+          <tr>
+            <form>
+              <td>Address</td>
+              <td><input type="text" form="url"></td>
+              <td><input data-cmd="change" type="submit" value="&#xe800;" disabled="true" form="url"></td>
+            </form>
+          </tr>
+          <tr>
+            <td>Date</td>
+            <td colspan="2"><span></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="notification">
+      <div>
+        <p></p>
+        <div>
+          <input type="button" value="No" data-cmd="no">
+          <input type="button" value="Yes" data-cmd="yes">
+          <input type="button" value="OK" data-cmd="ok">
+        </div>
+      </div>
+    </div>
+    <script src="jquery-3.1.1.js"></script>
+    <script src="./jstree/jstree.js"></script>
+    <script src="tree.js"></script>
+    <script src="fuse.js"></script>
+    <script src="search.js"></script>
+    <script src="properties.js"></script>
+    <script src="notification.js"></script>
+    <script src="toolbar.js"></script>
+  </body>
+</html>
