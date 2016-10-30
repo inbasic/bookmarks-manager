@@ -3,7 +3,7 @@
   "short_name": "ibmanager",
   "description": "An elegant bookmarks manager with fuzzy search and more",
   "author": "InBasic",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "manifest_version": 2,
   "permissions": [
     "storage",

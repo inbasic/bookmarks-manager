@@ -5,6 +5,7 @@ var properties = document.querySelector('#properties');
 properties.addEventListener('keyup', (e) => {
   let target = e.target;
   let tr = target.closest('tr');
+  console.error(tr, target)
   if (tr) {
     tr.querySelector('[type=submit]').disabled = !(target && target.dataset.value !== target.value && target.value);
   }

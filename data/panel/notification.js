@@ -40,7 +40,7 @@ var notify = (function () {
   };
 })();
 
-chrome.runtime.onMessage.addListener((request) => {
+chrome.runtime.onMessage.addListener(request => {
   if (request.cmd === 'notify.inline') {
     notify.inline(request.msg);
   }

@@ -19,6 +19,32 @@ chrome.runtime.onMessage.addListener((request) => {
     });
     req.send();
   }
+  else if (request.cmd === 'update-title') {
+    let req = new XMLHttpRequest();
+    req.open('GET', request.url);
+    req.responseType = 'document';
+    req.onload = () => {
+      let title = req.responseXML.title;
+      if (title) {
+        chrome.runtime.sendMessage({
+          cmd: 'title-info',
+          id: request.id,
+          title
+        });
+      }
+      else {
+        chrome.runtime.sendMessage({
+          cmd: 'notify.inline',
+          msg: 'Cannot detect "title" from GET response'
+        });
+      }
+    };
+    req.onerror = (e) => chrome.runtime.sendMessage({
+      cmd: 'notify.inline',
+      msg: e.type + ' ' + req.status
+    });
+    req.send();
+  }
 });
 
 function activate (tabId) {

@@ -89,8 +89,8 @@ input[type=button]:active {
 .menu-button li:hover {
   background-color: #f4f3f4;
 }
-.menu-button li:first-child {
-  border-bottom: solid 1px #b7b7b7;
+.menu-button li.separator {
+  border-top: solid 1px #b7b7b7;
 }
 .menu-button:hover ul {
   display: block;
@@ -248,6 +248,7 @@ input[type=button]:active {
   height: 80px;
   display: flex;
   flex-direction: column;
+  border: solid 3px #ccc;
 }
 #notification>div>p {
   flex: 1;

@@ -32,16 +32,22 @@
     </div>
     <div id="toolbar">
       <input type="button" value="Collapse" data-cmd="collapse">
-      <input type="button" value="Delete" data-cmd="delete">
+      <div class="menu-button">
+        <input type="button" value="Tools">
+        <ul>
+          <li data-cmd="validate">Validate this bookmark</li>
+          <li data-cmd="update-title">Update bookmark's title</li>
+          <li data-cmd="delete" class="separator">Delete this bookmark</li>
+        </ul>
+      </div>
       <div class="menu-button">
         <input type="button" value="Bookmark">
         <ul>
-          <li data-cmd="create-folder">Create new Directory</li>
           <li data-cmd="create-bookmark">Create new Bookmark</li>
           <li data-cmd="create-from-tab">Bookmark this Tab</li>
+          <li data-cmd="create-folder" class="separator">Create new Directory</li>
         </ul>
       </div>
-      <input type="button" value="Validate" data-cmd="validate">
       <span></span>
     </div>
     <div id="properties">

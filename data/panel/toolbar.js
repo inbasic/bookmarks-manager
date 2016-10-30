@@ -34,15 +34,16 @@ document.addEventListener('click', (e) => {
       });
     }
   }
-  else if (cmd === 'validate') {
+  else if (cmd === 'update-title' || cmd === 'validate') {
     let ids = tree.jstree('get_selected');
     let id = ids[0];
     let node = tree.jstree('get_node', id);
     if (node && node.data.url) {
-      notify.inline('Validating ...');
+      notify.inline(cmd === 'validate' ? 'Validating...' : 'Fetching...');
       chrome.runtime.sendMessage({
-        cmd: 'validate',
-        url: node.data.url
+        cmd,
+        url: node.data.url,
+        id
       });
     }
     else {
@@ -100,5 +101,27 @@ document.addEventListener('click', (e) => {
         tree.jstree('open_node', parentId);
       });
     });
+  }
+});
+
+chrome.runtime.onMessage.addListener(request => {
+  if (request.cmd === 'title-info') {
+    let ids = tree.jstree('get_selected');
+    let id = ids[0];
+    if (request.id === id) {
+      let input = document.querySelector('#properties input[form=title]');
+      if (input.value !== request.title) {
+        input.value = request.title;
+        input.dispatchEvent(new Event('keyup', {
+          bubbles: true
+        }));
+      }
+      else {
+        chrome.runtime.sendMessage({
+          cmd: 'notify.inline',
+          msg: '"title" is up-do-date'
+        });
+      }
+    }
   }
 });

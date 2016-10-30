@@ -67,9 +67,10 @@ tree.on('dblclick.jstree', () => {
 });
 
 tree.on('move_node.jstree', (e, data) => {
+  console.error(data)
   chrome.bookmarks.move(data.node.id, {
     parentId: data.parent,
-    index: data.position
+    index: data.position + (data.old_position >= data.position ? 0 : 1)
   });
 });
 
