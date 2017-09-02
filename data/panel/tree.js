@@ -1,7 +1,7 @@
 /* globals $, utils */
 'use strict';
 
-function getRoot () {
+function getRoot() {
   return typeof InstallTrigger !== 'undefined' ? 'root________' : '0';
 }
 
@@ -25,15 +25,15 @@ tree.jstree({
   'core' : {
     'check_callback' : true,
     'multiple': false,
-    'data' : function (obj, cb) {
+    'data' : function(obj, cb) {
       chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id, nodes => {
         cb.call(this, nodes.map(node => {
-          let children = !node.url;
+          const children = !node.url;
           return {
             text: node.title,
             id: node.id,
             type: children ? 'folder' : 'file',
-            icon: children ? null : 'chrome://favicon/' + node.url,
+            icon: children ? null : utils.favicon(node.url),
             children,
             data: {
               dateGroupModified: node.dateGroupModified,
@@ -46,35 +46,33 @@ tree.jstree({
     }
   },
   'contextmenu': {
-    'items': (node) => {
-      return {
-        'Copy Title': {
-          'label': 'Copy Title',
-          'action': () => utils.copy(node.text)
-        },
-        'Copy Link': {
-          'label': 'Copy Link',
-          'action': () => utils.copy(node.data.url),
-          '_disabled': () => !node.data.url
-        },
-        'Rename Title': {
-          'separator_before': true,
-          'label': 'Rename Title',
-          'action': () => window.dispatchEvent(new Event('properties:select-title'))
-        },
-        'Edit Link': {
-          'label': 'Edit Link',
-          'action': () => window.dispatchEvent(new Event('properties:select-link')),
-          '_disabled': () => !node.data.url
-        },
-      };
-    }
+    'items': node => ({
+      'Copy Title': {
+        'label': 'Copy Title',
+        'action': () => utils.copy(node.text)
+      },
+      'Copy Link': {
+        'label': 'Copy Link',
+        'action': () => utils.copy(node.data.url),
+        '_disabled': () => !node.data.url
+      },
+      'Rename Title': {
+        'separator_before': true,
+        'label': 'Rename Title',
+        'action': () => window.dispatchEvent(new Event('properties:select-title'))
+      },
+      'Edit Link': {
+        'label': 'Edit Link',
+        'action': () => window.dispatchEvent(new Event('properties:select-link')),
+        '_disabled': () => !node.data.url
+      },
+    })
   }
 });
 
 tree.on('dblclick.jstree', () => {
-  let ids = tree.jstree('get_selected');
-  let node = tree.jstree('get_node', ids[0]);
+  const ids = tree.jstree('get_selected');
+  const node = tree.jstree('get_node', ids[0]);
   if (node && node.data && node.data.url) {
     chrome.runtime.sendMessage({
       cmd: 'open',
@@ -91,12 +89,12 @@ tree.on('move_node.jstree', (e, data) => {
 });
 
 window.addEventListener('tree:open-array', e => {
-  let arr = e.detail.nodes;
+  const arr = e.detail.nodes;
   tree.jstree('deselect_all');
   tree.jstree('close_all');
   tree.jstree('close_all', () => {
     tree.jstree('load_node', arr.reverse(), () => {
-      let id = arr[0];
+      const id = arr[0];
       tree.jstree('select_node', id);
       $('#' + id + '_anchor').focus();
     });

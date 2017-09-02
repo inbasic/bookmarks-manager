@@ -1,30 +1,30 @@
 'use strict';
 
-chrome.runtime.onMessage.addListener((request) => {
+chrome.runtime.onMessage.addListener(request => {
   if (request.cmd === 'open') {
     chrome.tabs.create({
       url: request.url
     });
   }
   else if (request.cmd === 'validate') {
-    let req = new XMLHttpRequest();
+    const req = new XMLHttpRequest();
     req.open('GET', request.url);
     req.onload = () => chrome.runtime.sendMessage({
       cmd: 'notify.inline',
       msg: 'Link is fine'
     });
-    req.onerror = (e) => chrome.runtime.sendMessage({
+    req.onerror = e => chrome.runtime.sendMessage({
       cmd: 'notify.inline',
       msg: e.type + ' ' + req.status
     });
     req.send();
   }
   else if (request.cmd === 'update-title') {
-    let req = new XMLHttpRequest();
+    const req = new XMLHttpRequest();
     req.open('GET', request.url);
     req.responseType = 'document';
     req.onload = () => {
-      let title = req.responseXML.title;
+      const title = req.responseXML.title;
       if (title) {
         chrome.runtime.sendMessage({
           cmd: 'title-info',
@@ -39,7 +39,7 @@ chrome.runtime.onMessage.addListener((request) => {
         });
       }
     };
-    req.onerror = (e) => chrome.runtime.sendMessage({
+    req.onerror = e => chrome.runtime.sendMessage({
       cmd: 'notify.inline',
       msg: e.type + ' ' + req.status
     });
@@ -47,7 +47,7 @@ chrome.runtime.onMessage.addListener((request) => {
   }
 });
 
-function activate (tabId) {
+function activate(tabId) {
   chrome.browserAction.setIcon({
     tabId,
     path: {
@@ -57,7 +57,7 @@ function activate (tabId) {
     }
   });
 }
-function deactivate (tabId) {
+function deactivate(tabId) {
   chrome.browserAction.setIcon({
     tabId,
     path: {
@@ -68,23 +68,26 @@ function deactivate (tabId) {
   });
 }
 
+function search(url, callback) {
+  if (url.startsWith('about:') || url.startsWith('view-source:')) {
+    return;
+  }
+  chrome.bookmarks.search({url}, callback);
+}
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  chrome.bookmarks.search({
-    url:tab.url
-  }, nodes => {
-    if (nodes.length) {
+  search(tab.url, nodes => {
+    if (nodes && nodes.length) {
       activate(tabId);
     }
   });
 });
 
-function update () {
+function update() {
   chrome.tabs.query({}, tabs => {
     tabs.forEach(tab => {
-      chrome.bookmarks.search({
-        url:tab.url
-      }, nodes => {
-        if (nodes.length) {
+      search(tab.url, nodes => {
+        if (nodes && nodes.length) {
           activate(tab.id);
         }
         else {
@@ -99,14 +102,24 @@ chrome.bookmarks.onCreated.addListener(update);
 chrome.bookmarks.onRemoved.addListener(update);
 update();
 
-// FAQs
-chrome.storage.local.get('version', (obj) => {
-  let version = chrome.runtime.getManifest().version;
-  if (obj.version !== version) {
+// FAQs & Feedback
+chrome.storage.local.get({
+  'version': null,
+  'faqs': navigator.userAgent.indexOf('Firefox') === -1
+}, prefs => {
+  const version = chrome.runtime.getManifest().version;
+
+  if (prefs.version ? (prefs.faqs && prefs.version !== version) : true) {
     chrome.storage.local.set({version}, () => {
       chrome.tabs.create({
-        url: 'http://add0n.com/bookmarks-manager.html?version=' + version + '&type=' + (obj.version ? ('upgrade&p=' + obj.version) : 'install')
+        url: 'http://add0n.com/bookmarks-manager.html?version=' + version +
+          '&type=' + (prefs.version ? ('upgrade&p=' + prefs.version) : 'install')
       });
     });
   }
 });
+
+{
+  const {name, version} = chrome.runtime.getManifest();
+  chrome.runtime.setUninstallURL('http://add0n.com/feedback.html?name=' + name + '&version=' + version);
+}

@@ -1,4 +1,4 @@
-/* globals tree, notify */
+/* globals tree, notify, utils */
 'use strict';
 
 document.addEventListener('click', e => {
@@ -88,7 +88,7 @@ document.addEventListener('click', e => {
           text: node.title,
           id: node.id,
           type: url ? 'file' : 'folder',
-          icon: url ? 'chrome://favicon/' + url : null,
+          icon: url ? utils.favicon(url) : null,
           data: {
             dateGroupModified: node.dateGroupModified,
             dateAdded: node.dateAdded,

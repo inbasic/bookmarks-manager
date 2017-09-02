@@ -136,7 +136,7 @@ input[type=button]:active {
 #results>input {
   position: absolute;
   right: 2px;
-  top: 3px;
+  top: 1px;
   font-family: 'fontello';
   font-size: 100%;
   border: none;
@@ -157,6 +157,12 @@ input[type=button]:active {
   border-bottom: 1px solid #bebebe;
   background-color: #eeeeee;
   font-weight: normal;
+  text-align: left;
+  padding-left: 10px;
+  user-select: none;
+}
+#results th:last-child {
+  border-left: 1px solid #bebebe;
 }
 #results th,
 #results td {
