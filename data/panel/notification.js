@@ -1,9 +1,29 @@
+/*******************************************************************************
+    Bookmark Manager and Viewer - An elegant bookmark manager with fuzzy search and more
+
+    Copyright (C) 2014-2017 InBasic
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the Mozilla Public License as published by
+    the Mozilla Foundation, either version 2 of the License, or
+    (at your option) any later version.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    Mozilla Public License for more details.
+    You should have received a copy of the Mozilla Public License
+    along with this program.  If not, see {https://www.mozilla.org/en-US/MPL/}.
+
+    Home: http://add0n.com/bookmarks-manager.html
+    GitHub: https://github.com/inbasic/bookmarks-manager/
+*/
+
 'use strict';
 
-var notify = (function () {
-  let div = document.getElementById('notification');
-  let p = div.querySelector('p');
-  let callback = function () {};
+var notify = (function() {
+  const div = document.getElementById('notification');
+  const p = div.querySelector('p');
+  let callback = function() {};
 
   div.querySelector('[data-cmd=yes]').addEventListener('click', () => {
     div.style.display = 'none';
@@ -17,22 +37,22 @@ var notify = (function () {
     div.style.display = 'none';
   });
 
-  let ts = document.querySelector('#toolbar span');
+  const ts = document.querySelector('#toolbar span');
   let id;
 
   return {
-    confirm: function (msg, c) {
+    confirm: function(msg, c) {
       p.title = p.textContent = msg;
       div.style.display = 'flex';
       div.dataset.type = 'confirm';
       callback = c;
     },
-    warning: function (msg) {
+    warning: function(msg) {
       p.title = p.textContent = msg;
       div.style.display = 'flex';
       div.dataset.type = 'warning';
     },
-    inline: function (msg) {
+    inline: function(msg) {
       window.clearTimeout(id);
       ts.title = ts.textContent = msg;
       id = window.setTimeout(() => ts.title = ts.textContent = '', 5000);
