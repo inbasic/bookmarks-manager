@@ -5,8 +5,10 @@
     <link rel="stylesheet" href="./jstree/themes/default/style.css" />
     <link rel="stylesheet" href="./font/fontello.css">
     <link rel="stylesheet" href="./index.css">
+    <script src="body.js"></script>
   </head>
   <body>
+    <textarea style="display: none;"></textarea> <!-- for copy title and link to clipboard -->
     <div id="search">
       <input type="search" placeholder="Fuzzy search">
     </div>
@@ -37,7 +39,7 @@
         <ul>
           <li data-cmd="validate">Validate this bookmark</li>
           <li data-cmd="update-title">Update bookmark's title</li>
-          <li data-cmd="delete" class="separator">Delete this bookmark</li>
+          <li data-cmd="open-options" class="separator">Open options page</li>
         </ul>
       </div>
       <div class="menu-button">
@@ -45,10 +47,12 @@
         <ul>
           <li data-cmd="create-bookmark">Create new Bookmark</li>
           <li data-cmd="create-from-tab">Bookmark this Tab</li>
-          <li data-cmd="create-folder" class="separator">Create new Directory</li>
+          <li data-cmd="create-folder">Create new Directory</li>
+          <li data-cmd="delete" class="separator">Delete this bookmark</li>
         </ul>
       </div>
       <span></span>
+      <input type="button" value="Bookmark Manager" data-cmd="bookmark-manager">
     </div>
     <div id="properties">
       <form id="title"></form>
@@ -85,12 +89,13 @@
       </div>
     </div>
     <script src="jquery-3.1.1.js"></script>
-    <script src="./jstree/jstree.js"></script>
+    <script src="./jstree/jstree.min.js"></script>
     <script src="tree.js"></script>
     <script src="fuse.js"></script>
     <script src="search.js"></script>
     <script src="properties.js"></script>
     <script src="notification.js"></script>
     <script src="toolbar.js"></script>
+    <script src="utils.js"></script>
   </body>
 </html>

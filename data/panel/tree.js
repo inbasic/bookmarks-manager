@@ -1,4 +1,4 @@
-/* globals $ */
+/* globals $, utils */
 'use strict';
 
 function getRoot () {
@@ -8,18 +8,19 @@ function getRoot () {
 var tree = $('#tree');
 tree.jstree({
   'types': {
-    file: {
-      icon: 'item',
-      max_children: 0
+    'file': {
+      'icon': 'item',
+      'max_children': 0
     },
-    folder: {
-      icon: 'folder'
+    'folder': {
+      'icon': 'folder'
     }
   },
   'plugins' : [
     'state',
     'dnd',
-    'types'
+    'types',
+    'contextmenu'
   ],
   'core' : {
     'check_callback' : true,
@@ -43,16 +44,32 @@ tree.jstree({
         }));
       });
     }
-}});
-
-tree.on('select_node.jstree', (e, data) => {
-  document.querySelector('#properties').dataset.id = data.node.id;
-  let title = document.querySelector('#properties tr:nth-child(1) input');
-  title.dataset.value = title.value = data.node.text;
-  let url = document.querySelector('#properties tr:nth-child(2) input');
-  url.dataset.value = url.value = data.node.data.url;
-  let d = new Date(data.node.data.dateAdded);
-  document.querySelector('#properties tr:nth-child(3) span').textContent = d.toDateString() + ' ' + d.toLocaleTimeString();
+  },
+  'contextmenu': {
+    'items': (node) => {
+      return {
+        'Copy Title': {
+          'label': 'Copy Title',
+          'action': () => utils.copy(node.text)
+        },
+        'Copy Link': {
+          'label': 'Copy Link',
+          'action': () => utils.copy(node.data.url),
+          '_disabled': () => !node.data.url
+        },
+        'Rename Title': {
+          'separator_before': true,
+          'label': 'Rename Title',
+          'action': () => window.dispatchEvent(new Event('properties:select-title'))
+        },
+        'Edit Link': {
+          'label': 'Edit Link',
+          'action': () => window.dispatchEvent(new Event('properties:select-link')),
+          '_disabled': () => !node.data.url
+        },
+      };
+    }
+  }
 });
 
 tree.on('dblclick.jstree', () => {
@@ -67,7 +84,6 @@ tree.on('dblclick.jstree', () => {
 });
 
 tree.on('move_node.jstree', (e, data) => {
-  console.error(data)
   chrome.bookmarks.move(data.node.id, {
     parentId: data.parent,
     index: data.position + (data.old_position >= data.position ? 0 : 1)

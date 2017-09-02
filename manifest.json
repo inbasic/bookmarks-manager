@@ -1,16 +1,17 @@
 {
-  "name": "Bookmarks Manager and Viewer",
+  "name": "Bookmark Manager and Viewer",
   "short_name": "ibmanager",
-  "description": "An elegant bookmarks manager with fuzzy search and more",
+  "description": "An elegant bookmark manager with fuzzy search and more",
   "author": "InBasic",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "manifest_version": 2,
   "permissions": [
     "storage",
     "tabs",
     "bookmarks",
     "chrome://favicon/*",
-    "<all_urls>"
+    "<all_urls>",
+    "clipboardWrite"
   ],
   "background": {
     "scripts": [
@@ -32,5 +33,9 @@
   },
   "web_accessible_resources": [
     "favicon.ico"
-  ]
+  ],
+  "options_ui": {
+    "page": "data/options/index.html",
+    "chrome_style": true
+  }
 }

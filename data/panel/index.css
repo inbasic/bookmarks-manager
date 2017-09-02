@@ -1,6 +1,7 @@
 html,
 body {
   height: 100%;
+  overflow: hidden;
 }
 body {
   display: flex;
@@ -42,6 +43,7 @@ input[type=text]:focus {
 input[type=button] {
   cursor: pointer;
   margin: 0 2px;
+  min-height: 20px;
 }
 input[type=button]:active {
   opacity: 0.5;
@@ -120,6 +122,7 @@ input[type=button]:active {
   flex: 1;
   overflow: auto;
   position: relative;
+  user-select: none;
 }
 #results {
   height: 300px;
@@ -204,6 +207,9 @@ input[type=button]:active {
   width: 100%;
   cursor: pointer;
   height: 20px;
+}
+#properties input[type=text]:disabled {
+  background-color: transparent;
 }
 #properties input[type=submit]:disabled {
   background-color: #ccc;

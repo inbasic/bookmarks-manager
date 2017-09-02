@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Options</title>
+  <style>
+    body {
+      padding: 10px;
+      font-family: arial,sans-serif;
+      font-size: 13px;
+    }
+    label {
+      display: block;
+      padding: 3px 0;
+    }
+    input[type=number] {
+      width: 80px;
+      outline: none;
+    }
+    label p {
+      font-size: 80%;
+      color: #bfbfbf;
+      margin: 5px 10px;
+    }
+    textarea {
+      margin-top: 5px;
+      width: 100%;
+      height: 100px;
+    }
+  </style>
+</head>
+
+<body>
+  <label>
+    Panel width (in pixels):
+    <input id="width" type="number" min="300">
+    <p>Minimum acceptable value is 300</p>
+  </label>
+  <label>
+    Panel height (in pixels):
+    <input id="height" type="number" min="400">
+    <p>Minimum acceptable value is 400</p>
+  </label>
+
+  <p>
+    <button id="save">Save</button><span id="status"></span>
+  </p>
+
+  <script src="index.js"></script>
+</body>
+</html>
