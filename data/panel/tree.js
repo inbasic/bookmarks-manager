@@ -94,9 +94,19 @@ tree.on('dblclick.jstree', () => {
   const ids = tree.jstree('get_selected');
   const node = tree.jstree('get_node', ids[0]);
   if (node && node.data && node.data.url) {
-    chrome.runtime.sendMessage({
-      cmd: 'open',
-      url: node.data.url
+    const url = node.data.url;
+    chrome.tabs.query({
+      active: true,
+      currentWindow: true
+    }, tabs => {
+      // if current tab is new tab, update it
+      if (tabs.length && tabs[0].url === 'chrome://newtab/' || tabs[0].url === 'about:newtab') {
+        chrome.tabs.update({url});
+      }
+      else {
+        chrome.tabs.create({url});
+      }
+      window.close();
     });
   }
 });

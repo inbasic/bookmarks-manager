@@ -21,12 +21,7 @@
 'use strict';
 
 chrome.runtime.onMessage.addListener(request => {
-  if (request.cmd === 'open') {
-    chrome.tabs.create({
-      url: request.url
-    });
-  }
-  else if (request.cmd === 'validate') {
+  if (request.cmd === 'validate') {
     const req = new XMLHttpRequest();
     req.open('GET', request.url);
     req.onload = () => chrome.runtime.sendMessage({
