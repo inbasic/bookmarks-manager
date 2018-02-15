@@ -12,6 +12,7 @@
 'use strict';
 
 (function(search, results, tbody, trC, close) {
+  let useNative = false;
   let fuse;
   // focus searchbox on Ctrl + F
   window.addEventListener('keydown', e => {
@@ -22,6 +23,9 @@
   // reset fuse on edit
   window.addEventListener('search:reset-fuse', () => fuse = null);
   function prepare() {
+    if (useNative) {
+      return Promise.resolve();
+    }
     return new Promise(resolve => {
       chrome.bookmarks.getTree(nodes => {
         const arr = [];
@@ -64,13 +68,21 @@
   }
 
   function perform() {
-    const value = search.value;
+    let value = search.value;
     results.style.display = value ? 'block' : 'none';
     if (value.length > 1) {
-      (fuse ? Promise.resolve() : prepare()).then(() => {
-        const matches = fuse.search(value);
+      if (value.substr(0, 6) === 'fuzzy:') {
+        useNative = false;
+        value = value.replace(/fuzzy:\s*/, '');
+      }
+      else {
+        useNative = true;
+        fuse = null;
+      }
+      console.log('mode', useNative, fuse);
+      if (useNative) {
         tbody.textContent = '';
-        matches.forEach(obj => {
+        chrome.bookmarks.search(value, results => results.forEach(obj => {
           const tr = trC.cloneNode(true);
           const td1 = tr.querySelector('td:nth-child(1)');
           td1.style['background-image'] = `url(${utils.favicon(obj.url)})`;
@@ -79,8 +91,24 @@
           tr.dataset.id = obj.id;
           tr.dataset.parentId = obj.parentId;
           tbody.appendChild(tr);
+        }));
+      }
+      else {
+        (fuse ? Promise.resolve() : prepare()).then(() => {
+          const matches = fuse.search(value);
+          tbody.textContent = '';
+          matches.forEach(obj => {
+            const tr = trC.cloneNode(true);
+            const td1 = tr.querySelector('td:nth-child(1)');
+            td1.style['background-image'] = `url(${utils.favicon(obj.url)})`;
+            td1.textContent = obj.title;
+            tr.querySelector('td:nth-child(2)').textContent = obj.url;
+            tr.dataset.id = obj.id;
+            tr.dataset.parentId = obj.parentId;
+            tbody.appendChild(tr);
+          });
         });
-      });
+      }
     }
   }
 

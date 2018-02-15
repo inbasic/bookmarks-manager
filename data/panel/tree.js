@@ -33,10 +33,13 @@ tree.jstree({
     'contextmenu'
   ],
   'core' : {
+    // Content Security Policy: The page’s settings blocked the loading of a resource at blob:moz-extension://
+    'worker': !/Firefox/.test(navigator.userAgent),
     'check_callback' : true,
     'multiple': false,
     'data' : function(obj, cb) {
       chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id, nodes => {
+        console.log(nodes);
         cb.call(this, nodes.map(node => {
           const children = !node.url;
           return {
