@@ -9,6 +9,7 @@ body {
   width:  400px;
   height: 600px;
   margin: 0;
+  background-color: #fff;
 }
 body,
 table {
@@ -257,7 +258,7 @@ input[type=button]:active {
   background-color: #fff;
   padding: 10px;
   width: 80%;
-  height: 80px;
+  height: 90px;
   display: flex;
   flex-direction: column;
   border: solid 3px #ccc;
@@ -296,4 +297,10 @@ input[type=button]:active {
 }
 #toolbar>span:empty {
   display: none;
+}
+
+@-moz-document url-prefix() {
+  [data-cmd="bookmark-manager"] {
+    display: none;
+  }
 }
