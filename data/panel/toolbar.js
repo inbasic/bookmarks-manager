@@ -115,6 +115,10 @@ document.addEventListener('click', e => {
   else if (cmd === 'open-options') {
     chrome.runtime.openOptionsPage();
   }
+  else if (cmd === 'reset-root') {
+    localStorage.removeItem('root');
+    location.reload()
+  }
   else if (cmd === 'bookmark-manager') {
     chrome.tabs.create({
       url: 'chrome://bookmarks/'

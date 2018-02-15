@@ -280,3 +280,20 @@ input[type=button]:active {
 #notification[data-type=warning] [data-cmd=no] {
   display: none;
 }
+/* inline notification */
+#toolbar>span {
+  position: fixed;
+  background-color: #fdf8e4;
+  color: #b79148;
+  border: solid 1px #b79148;
+  z-index: 10;
+  display: block;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+}
+#toolbar>span:empty {
+  display: none;
+}

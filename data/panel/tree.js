@@ -8,10 +8,13 @@
  * GitHub: https://github.com/inbasic/bookmarks-manager/
 */
 
-/* globals $, utils */
+/* globals $, utils, notify */
 'use strict';
 
 function getRoot() {
+  if (localStorage.getItem('root')) {
+    return localStorage.getItem('root');
+  }
   return typeof InstallTrigger !== 'undefined' ? 'root________' : '0';
 }
 
@@ -39,7 +42,6 @@ tree.jstree({
     'multiple': false,
     'data' : function(obj, cb) {
       chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id, nodes => {
-        console.log(nodes);
         cb.call(this, nodes.map(node => {
           const children = !node.url;
           return {
@@ -78,6 +80,21 @@ tree.jstree({
         'label': 'Edit Link',
         'action': () => window.dispatchEvent(new Event('properties:select-link')),
         '_disabled': () => !node.data.url
+      },
+      'Set as Root': {
+        'label': 'Set as Root',
+        'action': () => {
+          const ids = tree.jstree('get_selected');
+
+          if (ids.length === 1) {
+            localStorage.setItem('root', ids[0]);
+            location.reload();
+          }
+          else {
+            notify.inline('Please select a single directory');
+          }
+        },
+        '_disabled': () => node.data.url
       },
     })
   }
