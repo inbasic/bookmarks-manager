@@ -13,6 +13,7 @@
 var log = document.getElementById('status');
 
 function restore() {
+  document.getElementById('css').value = localStorage.getItem('css') || '';
   chrome.storage.local.get({
     width: 400,
     height: 600
@@ -24,7 +25,8 @@ function restore() {
 }
 
 function save() {
-  let prefs = {
+  localStorage.setItem('css', document.getElementById('css').value || '');
+  const prefs = {
     width: Math.max(300, document.getElementById('width').value),
     height: Math.max(400, document.getElementById('height').value)
   };

@@ -17,3 +17,12 @@ chrome.storage.local.get({
   document.body.style.width = prefs.width + 'px';
   document.body.style.height = prefs.height + 'px';
 });
+
+{
+  const css = localStorage.getItem('css') || '';
+  if (css) {
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.documentElement.appendChild(style);
+  }
+}
