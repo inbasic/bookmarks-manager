@@ -74,5 +74,5 @@ tree.on('select_node.jstree', (e, data) => {
   }));
 
   const d = new Date(data.node.data.dateAdded);
-  properties.querySelector('tr:nth-child(3) span').textContent = d.toDateString() + ' ' + d.toLocaleTimeString();
+  properties.querySelector('tr:nth-child(3) span').textContent = d.toLocaleString();
 });
