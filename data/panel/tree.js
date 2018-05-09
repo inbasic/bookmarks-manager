@@ -19,6 +19,7 @@ function getRoot() {
 }
 
 var tree = $('#tree');
+
 tree.jstree({
   'types': {
     'file': {
@@ -50,6 +51,9 @@ tree.jstree({
             type: children ? 'folder' : 'file',
             icon: children ? null : utils.favicon(node.url),
             children,
+            a_attr: { // open with middle-click
+              href: node.url || '#'
+            },
             data: {
               dateGroupModified: node.dateGroupModified,
               dateAdded: node.dateAdded,
