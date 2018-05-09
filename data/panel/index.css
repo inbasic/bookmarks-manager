@@ -83,8 +83,9 @@ input[type=button]:active {
   border: solid 1px #b7b7b7;
   list-style-type: none;
   padding: 0;
-  display: none;
   z-index: 1;
+  visibility: hidden;
+  opacity: 0;
 }
 .menu-button li {
   padding: 3px 5px;
@@ -97,7 +98,9 @@ input[type=button]:active {
   border-top: solid 1px #b7b7b7;
 }
 .menu-button:hover ul {
-  display: block;
+  transition-delay: .25s;
+  visibility: visible;
+  opacity: 1;
 }
 
 #collapse {

@@ -4,22 +4,16 @@
   <title>Options</title>
   <style>
     body {
-      padding: 10px;
       font-family: arial,sans-serif;
       font-size: 13px;
+      min-width: 500px;
     }
-    label {
-      display: block;
-      padding: 3px 0;
+    td:last-child {
+      text-align: right;
     }
     input[type=number] {
       width: 80px;
       outline: none;
-    }
-    label p {
-      font-size: 80%;
-      color: #bfbfbf;
-      margin: 5px 10px;
     }
     textarea {
       margin-top: 5px;
@@ -29,21 +23,27 @@
 </head>
 
 <body>
-  <label>
-    Panel width (in pixels):
-    <input id="width" type="number" min="300">
-    <p>Minimum acceptable value is 300</p>
-  </label>
-  <label>
-    Panel height (in pixels):
-    <input id="height" type="number" min="400">
-    <p>Minimum acceptable value is 400</p>
-  </label>
-  Custom styling (Read <a href="http://add0n.com/bookmarks-manager.html">FAQs</a> page for more info):
-  <textarea id="css" rows="5"></textarea>
+  <table width=100%>
+    <tr>
+      <td><label for="width">Panel width (in pixels) (min: 300px):</label></td>
+      <td><input id="width" type="number" min="300"></td>
+    </tr>
+    <tr>
+      <td><label for="height">Panel height (in pixels) (min: 400px):</label></td>
+      <td><input id="height" type="number" min="400"></td>
+    </tr>
+  </table>
+  <p>
+    Custom styling (Read <a href="http://add0n.com/bookmarks-manager.html">FAQs</a> page for more info):
+    <textarea id="css" rows="5"></textarea>
+  </p>
 
   <p>
-    <button id="save">Save</button>
+    Rate "<b><a id="rate" href="https://chrome.google.com/webstore/detail/bookmark-manager-and-view/mnhojcjhcilkgkmijhphlbmghmmdhlfg/reviews" style="text-decoration: none">Bookmark Manager and Viewer</a></b>"
+  </p>
+  <p>
+    <button id="support">Support Development</button>
+    <button id="reset">Reset</button> - <button id="save">Save</button>
     <span id="status"></span>
   </p>
 

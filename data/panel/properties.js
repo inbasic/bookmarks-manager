@@ -8,7 +8,7 @@
  * GitHub: https://github.com/inbasic/bookmarks-manager/
 */
 
-/* globals tree */
+/* globals tree, notify */
 'use strict';
 
 var properties = document.querySelector('#properties');
@@ -44,6 +44,11 @@ properties.addEventListener('submit', e => {
     }
     // reseting fuse
     window.dispatchEvent(new Event('search:reset-fuse'));
+    //
+    const lastError = chrome.runtime.lastError;
+    if (lastError) {
+      notify.inline('[Refresh Required] ' + lastError.message);
+    }
   });
 });
 

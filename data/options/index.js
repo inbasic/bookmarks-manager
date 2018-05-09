@@ -48,3 +48,30 @@ document.getElementById('save').addEventListener('click', () => {
     setTimeout(() => log.textContent = '', 750);
   }
 });
+
+document.getElementById('reset').addEventListener('click', e => {
+  if (e.detail === 1) {
+    window.setTimeout(() => log.textContent = '', 750);
+    log.textContent = 'Double-click to reset!';
+  }
+  else {
+    localStorage.clear();
+    chrome.storage.local.clear(() => {
+      chrome.runtime.reload();
+      window.close();
+    });
+  }
+});
+
+document.getElementById('support').addEventListener('click', () => chrome.tabs.create({
+  url: chrome.runtime.getManifest().homepage_url + '?rd=donate'
+}));
+
+if (navigator.userAgent.indexOf('Firefox') !== -1) {
+  document.getElementById('rate').href =
+    'https://addons.mozilla.org/en-US/firefox/addon/bookmarks-manager-and-viewer/reviews/';
+}
+else if (navigator.userAgent.indexOf('OPR') !== -1) {
+  document.getElementById('rate').href =
+    'https://addons.opera.com/en/extensions/details/bookmarks-manager-and-viewer/#feedback-container';
+}
