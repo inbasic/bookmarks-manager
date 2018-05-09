@@ -132,7 +132,7 @@ tree.jstree({
   }
 });
 
-tree.on('dblclick.jstree', () => {
+tree.on('dblclick.jstree', e => {
   const ids = tree.jstree('get_selected');
   const node = tree.jstree('get_node', ids[0]);
   if (node && node.data && node.data.url) {
@@ -142,7 +142,7 @@ tree.on('dblclick.jstree', () => {
       currentWindow: true
     }, tabs => {
       // if current tab is new tab, update it
-      if (tabs.length && tabs[0].url === 'chrome://newtab/' || tabs[0].url === 'about:newtab') {
+      if (tabs.length && tabs[0].url === 'chrome://newtab/' || tabs[0].url === 'about:newtab' || e.shiftKey) {
         chrome.tabs.update({url});
       }
       else {
