@@ -10,14 +10,6 @@
 
 'use strict';
 
-chrome.storage.local.get({
-  width: 400,
-  height: 600
-}, prefs => {
-  document.body.style.width = prefs.width + 'px';
-  document.body.style.height = prefs.height + 'px';
-});
-
 {
   const css = localStorage.getItem('css') || '';
   if (css) {
@@ -26,3 +18,20 @@ chrome.storage.local.get({
     document.documentElement.appendChild(style);
   }
 }
+// loaded in sidebar
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (location.search && location.search.indexOf('in=sidebar') !== -1) {
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+  }
+  else {
+    chrome.storage.local.get({
+      width: 400,
+      height: 600
+    }, prefs => {
+      document.body.style.width = prefs.width + 'px';
+      document.body.style.height = prefs.height + 'px';
+    });
+  }
+});

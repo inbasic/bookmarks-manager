@@ -39,11 +39,23 @@
       "size": 64
     }]
   },
+  "sidebar_action": {
+    "default_panel": "data/panel/index.html?in=sidebar",
+    "default_icon": {
+      "16": "data/icons/16.png",
+      "32": "data/icons/32.png",
+      "48": "data/icons/48.png",
+      "128": "data/icons/128.png"
+    }
+  },
   "homepage_url": "http://add0n.com/bookmarks-manager.html",
   "icons": {
     "16": "data/icons/16.png",
+    "32": "data/icons/32.png",
     "48": "data/icons/48.png",
-    "128": "data/icons/128.png"
+    "128": "data/icons/128.png",
+    "256": "data/icons/256.png",
+    "512": "data/icons/512.png"
   },
   "web_accessible_resources": [
     "favicon.ico"
