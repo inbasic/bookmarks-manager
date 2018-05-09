@@ -54,7 +54,7 @@ document.addEventListener('click', e => {
         cmd,
         url: node.data.url,
         id
-      });
+      }, r => notify.inline(r.msg));
     }
     else {
       notify.inline('Not applicable for this node');

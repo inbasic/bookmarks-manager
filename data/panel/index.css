@@ -30,6 +30,7 @@ input[type=text],
 #properties span {
   border: solid 1px #b7b7b7;
   background-color: #fff;
+  font-size: 10px;
 }
 input[type=search],
 input[type=text],
@@ -49,6 +50,9 @@ input[type=button] {
 }
 input[type=button]:active {
   opacity: 0.5;
+}
+input:disabled {
+  opacity: 0.3 !important;
 }
 .folder {
   background-position: center !important;
@@ -135,12 +139,12 @@ input[type=button]:active {
 }
 #results {
   height: 300px;
+  max-height: 50vh;
   border-top: solid 1px #b7b7b7;
   position: relative;
   white-space: nowrap;
   display: none;
-  overflow-x: hidden;
-  overflow-y: auto;
+  flex-direction: column;
 }
 
 #results [data-id=address] {
@@ -151,11 +155,13 @@ input[type=button]:active {
   flex: 1;
 }
 
-#results [data-id=address] input {
+#results [data-id=address] input[data-cmd=close] {
   border: none;
-  background-color: transparent;
-  opacity: 0.5;
   font-size: 14px;
+  opacity: 0.5;
+  background-color: transparent;
+}
+#results [data-id=address] input {
 }
 #results [data-id=address] input:hover {
   opacity: 0.8;
@@ -163,11 +169,11 @@ input[type=button]:active {
 #results [data-id=address] input:active {
   opacity: 0.8;
 }
-#results>table {
+#results table {
   table-layout: fixed;
   border-spacing: 0;
 }
-#results>table tbody:empty::before {
+#results table tbody:empty::before {
   content: 'No results';
   display: block;
   margin: 5px;
@@ -186,13 +192,16 @@ input[type=button]:active {
 }
 #results th,
 #results td {
-  height: 26px;
+  height: 22px;
 }
 #results tbody tr {
   cursor: pointer;
 }
-#results>table>tr {
-  display: none;
+#results table tr[data-valid=true] td{
+  color: green;
+}
+#results table tr[data-valid=false] td{
+  color: red;
 }
 #results tbody tr:nth-child(odd) {
   background-color: #f4f3f4;

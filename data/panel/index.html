@@ -14,27 +14,41 @@
     </div>
     <div id="tree"></div>
     <div id="results">
-      <table>
-        <col width="250">
-        <tr id="tr">
+      <template>
+        <tr>
           <td></td>
           <td></td>
         </tr>
-        <thead>
-          <tr>
-            <th data-sort="td">Title</th>
-            <th data-sort="td:last-child">
-              <div data-id="address">
-                <span>Address</span>
-                <input type="button" value="✕">
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr></tr>
-        </tbody>
-      </table>
+      </template>
+      <div>
+        <table>
+          <colgroup>
+            <col">
+            <col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th data-sort="td">Title</th>
+              <th data-sort="td:last-child">
+                <div data-id="address">
+                  <span>Address</span>
+                  <input type="button" value="Validate" data-cmd="validate-list">
+                  <input type="button" value="✕" data-cmd="close">
+                </div>
+              </th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div style="overflow-x: hidden; overflow-y: auto; flex: 1">
+        <table>
+          <colgroup>
+            <col>
+            <col>
+          </colgroup>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
     <div id="toolbar">
       <input type="button" value="Collapse" data-cmd="collapse">

@@ -103,6 +103,16 @@ tree.jstree({
         'action': () => window.dispatchEvent(new Event('properties:select-link')),
         '_disabled': () => !node.data.url
       },
+      'Validate Bookmarks': {
+        'separator_before': true,
+        'label': 'Validate Bookmarks',
+        'action': () => {
+          const input = document.querySelector('#search input');
+          input.value = 'root:' + node.id;
+          input.dispatchEvent(new Event('search'));
+        },
+        '_disabled': () => Boolean(node.data.url)
+      },
       'Set as Root': {
         'label': 'Set as Root',
         'action': () => {

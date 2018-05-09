@@ -10,19 +10,30 @@
 
 'use strict';
 
-chrome.runtime.onMessage.addListener(request => {
+chrome.runtime.onMessage.addListener((request, sender, response) => {
   if (request.cmd === 'validate') {
     const req = new XMLHttpRequest();
-    req.open('GET', request.url);
-    req.onload = () => chrome.runtime.sendMessage({
-      cmd: 'notify.inline',
+    try {
+      req.open('GET', request.url);
+    }
+    catch (e) {
+      return response({
+        valid: false,
+        msg: 'Link is dead'
+      });
+    }
+    req.timeout = 6000;
+    req.onload = () => response({
+      valid: true,
       msg: 'Link is fine'
     });
-    req.onerror = e => chrome.runtime.sendMessage({
-      cmd: 'notify.inline',
-      msg: e.type + ' ' + req.status
+    req.ontimeout = req.onerror = () => response({
+      valid: false,
+      msg: 'Link is dead'
     });
     req.send();
+
+    return true;
   }
   else if (request.cmd === 'update-title') {
     const req = new XMLHttpRequest();
