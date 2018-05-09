@@ -115,9 +115,14 @@ document.addEventListener('click', e => {
   else if (cmd === 'open-options') {
     chrome.runtime.openOptionsPage();
   }
+  else if (cmd === 'open-in-tab') {
+    chrome.tabs.create({
+      url: '/data/panel/index.html?in=tab'
+    });
+  }
   else if (cmd === 'reset-root') {
     localStorage.removeItem('root');
-    location.reload()
+    location.reload();
   }
   else if (cmd === 'bookmark-manager') {
     chrome.tabs.create({

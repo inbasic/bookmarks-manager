@@ -23,5 +23,13 @@ utils.copy = text => {
 
 utils.favicon = (() => {
   const isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
-  return url => (isFirefox ? 'http://www.google.com/s2/favicons?domain_url=' : 'chrome://favicon/') + url;
+  return url => {
+    if (url.startsWith('/')) {
+      return url;
+    }
+    if (isFirefox) {
+      return 'http://www.google.com/s2/favicons?domain_url=' + url;
+    }
+    return 'chrome://favicon/' + url;
+  };
 })();

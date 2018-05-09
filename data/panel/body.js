@@ -21,7 +21,10 @@
 // loaded in sidebar
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (location.search && location.search.indexOf('in=sidebar') !== -1) {
+  if (
+    location.search && location.search.indexOf('in=sidebar') !== -1 ||
+    location.search && location.search.indexOf('in=tab') !== -1
+  ) {
     document.body.style.width = '100%';
     document.body.style.height = '100%';
   }

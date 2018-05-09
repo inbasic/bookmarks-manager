@@ -20,6 +20,7 @@
       search.focus();
     }
   });
+  window.setTimeout(() => search.focus(), 100);
   // reset fuse on edit
   window.addEventListener('search:reset-fuse', () => fuse = null);
   function prepare() {
@@ -79,13 +80,23 @@
         useNative = true;
         fuse = null;
       }
-      console.log('mode', useNative, fuse);
       if (useNative) {
         tbody.textContent = '';
         chrome.bookmarks.search(value, results => results.forEach(obj => {
           const tr = trC.cloneNode(true);
           const td1 = tr.querySelector('td:nth-child(1)');
-          td1.style['background-image'] = `url(${utils.favicon(obj.url)})`;
+
+          let icon = obj.url;
+          if (!icon && navigator.userAgent.indexOf('Firefox') !== -1 && obj.type === 'folder') {
+            icon = '/data/panel/icons/folder.png';
+          }
+          if (!icon && navigator.userAgent.indexOf('Firefox') === -1) {
+            icon = '/data/panel/icons/folder.png';
+          }
+          icon = icon || '/data/panel/icons/page.png';
+
+          td1.style['background-image'] = `url(${utils.favicon(icon)})`;
+
           td1.textContent = obj.title;
           tr.querySelector('td:nth-child(2)').textContent = obj.url;
           tr.dataset.id = obj.id;
@@ -165,5 +176,5 @@
   document.querySelector('#results'),
   document.querySelector('#results tbody'),
   document.querySelector('#tr'),
-  document.querySelector('#results>input')
+  document.querySelector('#results [data-id=address] input')
 );

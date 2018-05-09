@@ -14,7 +14,6 @@
     </div>
     <div id="tree"></div>
     <div id="results">
-      <input type="button" value="&#xe801;">
       <table>
         <col width="250">
         <tr id="tr">
@@ -24,7 +23,12 @@
         <thead>
           <tr>
             <th data-sort="td">Title</th>
-            <th data-sort="td:last-child">Address</th>
+            <th data-sort="td:last-child">
+              <div data-id="address">
+                <span>Address</span>
+                <input type="button" value="✕">
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -34,13 +38,14 @@
     </div>
     <div id="toolbar">
       <input type="button" value="Collapse" data-cmd="collapse">
-      <div class="menu-button">
+      <div class="menu-button" data-id=tools>
         <input type="button" value="Tools">
         <ul>
           <li data-cmd="validate">Validate this bookmark</li>
           <li data-cmd="update-title">Update bookmark's title</li>
           <li data-cmd="open-options" class="separator">Open options page</li>
-          <li data-cmd="reset-root">Reset Root</li>
+          <li data-cmd="open-in-tab">Open in new tab</li>
+          <li data-cmd="reset-root">Reset root</li>
         </ul>
       </div>
       <div class="menu-button">
@@ -59,6 +64,11 @@
       <form id="title"></form>
       <form id="url"></form>
       <table>
+        <colgroup>
+          <col width="60">
+          <col>
+          <col width="50">
+        </colgroup>
         <tbody>
           <tr>
             <td>Title</td>
