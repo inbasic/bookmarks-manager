@@ -20,6 +20,20 @@ function getRoot() {
 
 var tree = $('#tree');
 
+tree.string = {};
+tree.string.escape = str => str
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;');
+tree.string.uscape = str => str
+  .replace(/&lt;/g, '<')
+  .replace(/&gt;/g, '>')
+  .replace(/&quot;/g, '"')
+  .replace(/&#039;/g, "'")
+  .replace(/&amp;/g, '&');
+
 tree.jstree({
   'types': {
     'file': {
@@ -50,7 +64,7 @@ tree.jstree({
         cb(nodes.map(node => {
           const children = !node.url;
           return {
-            text: node.title,
+            text: tree.string.escape(node.title),
             id: node.id,
             type: children ? 'folder' : 'file',
             icon: children ? null : utils.favicon(node.url),

@@ -29,6 +29,7 @@ properties.addEventListener('submit', e => {
   const input = tr.querySelector('input');
   const prp = {};
   prp[form.id] = input.value;
+
   chrome.bookmarks.update(id, prp, () => {
     input.dataset.value = input.value;
     tr.querySelector('[type=submit]').disabled = true;
@@ -40,7 +41,7 @@ properties.addEventListener('submit', e => {
     }
     // updating tree view
     if (form.id === 'title') {
-      tree.jstree('set_text', id, input.value);
+      tree.jstree('set_text', id, tree.string.escape(prp.title));
     }
     // reseting fuse
     window.dispatchEvent(new Event('search:reset-fuse'));
@@ -67,7 +68,8 @@ tree.on('select_node.jstree', (e, data) => {
   properties.dataset.id = data.node.id;
 
   const title = properties.querySelector('tr:nth-child(1) input');
-  title.dataset.value = title.value = data.node.text;
+  title.dataset.value = title.value =
+    tree.string.uscape(data.node.text);
   title.dispatchEvent(new Event('keyup', {
     bubbles: true
   }));
