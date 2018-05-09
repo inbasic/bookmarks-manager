@@ -84,6 +84,7 @@ input[type=button]:active {
   list-style-type: none;
   padding: 0;
   display: none;
+  z-index: 1;
 }
 .menu-button li {
   padding: 3px 5px;
@@ -198,6 +199,10 @@ input[type=button]:active {
   border-top: solid 1px #b7b7b7;
   background-color: #f2f2f2;
   padding: 5px;
+}
+#properties[data-enable=false] {
+  pointer-events: none;
+  opacity: 0.5;
 }
 #properties td:first-child {
   width: 60px;

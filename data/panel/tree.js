@@ -30,20 +30,24 @@ tree.jstree({
       'icon': 'folder'
     }
   },
-  'plugins' : [
-    'state',
-    'dnd',
-    'types',
-    'contextmenu'
-  ],
+  'plugins' : ['state', 'dnd', 'types', 'contextmenu'],
   'core' : {
     // Content Security Policy: The page’s settings blocked the loading of a resource at blob:moz-extension://
     'worker': !/Firefox/.test(navigator.userAgent),
-    'check_callback' : true,
-    'multiple': false,
-    'data' : function(obj, cb) {
+    'check_callback' : (operation, node, node_parent) => {
+      if (operation === 'move_node') {
+        // do not allow moving of the root elements
+        // do not allow moving to the root
+        if (node.parent === '#' || node_parent.id === '#') {
+          return false;
+        }
+      }
+      return true;
+    },
+    'multiple': true,
+    'data' : (obj, cb) => {
       chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id, nodes => {
-        cb.call(this, nodes.map(node => {
+        cb(nodes.map(node => {
           const children = !node.url;
           return {
             text: node.title,
@@ -129,6 +133,11 @@ tree.on('move_node.jstree', (e, data) => {
   chrome.bookmarks.move(data.node.id, {
     parentId: data.parent,
     index: data.position + (data.old_position >= data.position ? 0 : 1)
+  }, () => {
+    const lastError = chrome.runtime.lastError;
+    if (lastError) {
+      notify.inline('[Refresh Required] ' + lastError.message);
+    }
   });
 });
 
