@@ -54,10 +54,16 @@ input[type=button]:active {
 input:disabled {
   opacity: 0.3 !important;
 }
+.d_folder,
 .folder {
   background-position: center !important;
   background-size: 16px;
+}
+.folder {
   background-image: url(icons/folder.png) !important;
+}
+.d_folder {
+  background-image: url(icons/d_folder.png) !important;
 }
 .menu-button {
   position: relative;
@@ -82,7 +88,7 @@ input:disabled {
 .menu-button>ul {
   position: absolute;
   left: 2px;
-  top: 2px;
+  top: 7px;
   white-space: nowrap;
   background-color: #fff;
   border: solid 1px #b7b7b7;
@@ -91,9 +97,6 @@ input:disabled {
   z-index: 1;
   visibility: hidden;
   opacity: 0;
-}
-.menu-button[data-id=tools]>ul {
-  top: -18px;
 }
 .menu-button li {
   padding: 3px 5px;
@@ -127,9 +130,14 @@ input:disabled {
   padding: 10px;
   border-bottom: solid 1px #b7b7b7;
 }
-#search input {
+#search input[type=search] {
   flex: 1;
   height: 26px;
+}#search input[type=button] {
+  width: 26px;
+  height: 26px;
+  background: url('icons/window.svg') center center no-repeat;
+  background-size: 14px;
 }
 #tree {
   flex: 1;
@@ -288,16 +296,15 @@ input:disabled {
   background-color: #fff;
   padding: 10px;
   width: 80%;
-  height: 90px;
+  min-height: 90px;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
   border: solid 3px #ccc;
 }
-#notification>div>p {
-  flex: 1;
-  text-overflow: ellipsis;
+#notification>div>pre {
   overflow: hidden;
-  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 #notification>div>div {
   display: flex;
@@ -310,6 +317,9 @@ input:disabled {
 #notification[data-type=warning] [data-cmd=yes],
 #notification[data-type=warning] [data-cmd=no] {
   display: none;
+}
+#notification input {
+  min-width: 90px;
 }
 /* inline notification */
 #toolbar>span {

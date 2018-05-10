@@ -42,9 +42,13 @@ tree.jstree({
     },
     'folder': {
       'icon': 'folder'
+    },
+    'd_folder': {
+      'icon': 'd_folder'
     }
   },
-  'plugins' : ['state', 'dnd', 'types', 'contextmenu'],
+  'plugins' : ['state', 'dnd', 'types', 'contextmenu', 'conditionalselect'],
+  'conditionalselect': node => node.parent !== '#',
   'core' : {
     // Content Security Policy: The page’s settings blocked the loading of a resource at blob:moz-extension://
     'worker': !/Firefox/.test(navigator.userAgent),
@@ -66,7 +70,7 @@ tree.jstree({
           return {
             text: tree.string.escape(node.title),
             id: node.id,
-            type: children ? 'folder' : 'file',
+            type: children ? (obj.id === '#' ? 'd_folder' : 'folder') : 'file',
             icon: children ? null : utils.favicon(node.url),
             children,
             a_attr: { // open with middle-click
@@ -76,6 +80,9 @@ tree.jstree({
               dateGroupModified: node.dateGroupModified,
               dateAdded: node.dateAdded,
               url: node.url || ''
+            },
+            state : {
+              hidden : node.url && node.url.startsWith('place:')
             }
           };
         }));
@@ -86,11 +93,21 @@ tree.jstree({
     'items': node => ({
       'Copy Title': {
         'label': 'Copy Title',
-        'action': () => utils.copy(node.text)
+        'action': () => {
+          const ids = tree.jstree('get_selected');
+          const nodes = ids.map(id => tree.jstree('get_node', id));
+
+          utils.copy(nodes.map(node => node.text).join('\n'));
+        }
       },
       'Copy Link': {
         'label': 'Copy Link',
-        'action': () => utils.copy(node.data.url),
+        'action': () => {
+          const ids = tree.jstree('get_selected');
+          const nodes = ids.map(id => tree.jstree('get_node', id));
+
+          utils.copy(nodes.map(node => node.data.url).join('\n'));
+        },
         '_disabled': () => !node.data.url
       },
       'Rename Title': {
@@ -103,15 +120,19 @@ tree.jstree({
         'action': () => window.dispatchEvent(new Event('properties:select-link')),
         '_disabled': () => !node.data.url
       },
-      'Validate Bookmarks': {
+      'Delete Bookmark': {
+        'label': 'Delete Bookmark',
+        'action': () => document.querySelector('#toolbar [data-cmd="delete"]').click()
+      },
+      'Validate Bookmark': {
         'separator_before': true,
         'label': 'Validate Bookmarks',
         'action': () => {
           const input = document.querySelector('#search input');
-          input.value = 'root:' + node.id;
+          const ids = tree.jstree('get_selected');
+          input.value = (node.data.url, ids.length > 1 ? 'id:' : 'root:') + ids.join(',');
           input.dispatchEvent(new Event('search'));
-        },
-        '_disabled': () => Boolean(node.data.url)
+        }
       },
       'Set as Root': {
         'label': 'Set as Root',
@@ -132,9 +153,10 @@ tree.jstree({
   }
 });
 
-tree.on('dblclick.jstree', e => {
+tree.on('dblclick.jstree', (e, data) => {
   const ids = tree.jstree('get_selected');
   const node = tree.jstree('get_node', ids[0]);
+
   if (node && node.data && node.data.url) {
     const url = node.data.url;
     chrome.tabs.query({
@@ -153,16 +175,56 @@ tree.on('dblclick.jstree', e => {
   }
 });
 
-tree.on('move_node.jstree', (e, data) => {
-  chrome.bookmarks.move(data.node.id, {
-    parentId: data.parent,
-    index: data.position + (data.old_position >= data.position ? 0 : 1)
-  }, () => {
-    const lastError = chrome.runtime.lastError;
-    if (lastError) {
-      notify.inline('[Refresh Required] ' + lastError.message);
+tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
+  if (e.type === 'copy_node') { // copy
+    const b = {
+      parentId: data.parent,
+      index: data.position,
+      title: data.node.text,
+      url: data.original.data.url
+    };
+    if (!b.url) { // delete URL if not available
+      delete b.url;
     }
-  });
+    chrome.bookmarks.create(b, bookmark => {
+      const lastError = chrome.runtime.lastError;
+      if (lastError) {
+        notify.inline('[Refresh Required] ' + lastError.message);
+        tree.jstree('delete_node', data.node);
+      }
+      else {
+        // update node
+        tree.jstree(true).set_id(data.node, bookmark.id);
+        data.node.data = {
+          dateGroupModified: bookmark.dateGroupModified,
+          dateAdded: bookmark.dateAdded,
+          url: bookmark.url || ''
+        };
+        // repair new created child bookmarks
+        data.original.children.forEach((id, index) => {
+          const original = tree.jstree('get_node', id);
+          const position = tree.jstree('get_node', data.original).children.indexOf(id);
+          tree.trigger('copy_node.jstree', {
+            node: tree.jstree('get_node', data.node.children[index]),
+            original,
+            parent: bookmark.id,
+            position
+          });
+        });
+      }
+    });
+  }
+  else {
+    chrome.bookmarks.move(data.node.id, {
+      parentId: data.parent,
+      index: data.position
+    }, () => {
+      const lastError = chrome.runtime.lastError;
+      if (lastError) {
+        notify.inline('[Refresh Required] ' + lastError.message);
+      }
+    });
+  }
 });
 
 window.addEventListener('tree:open-array', e => {

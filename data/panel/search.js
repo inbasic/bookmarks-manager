@@ -115,6 +115,11 @@
         const id = value.replace(/root:\s*/, '');
         chrome.bookmarks.getChildren(id, (results = []) => results.forEach(add));
       }
+      else if (value.startsWith('id:')) {
+        const ids = value.replace(/id:\s*/, '').split(/,\s*/);
+        console.log(ids);
+        chrome.bookmarks.get(ids, (results = []) => results.forEach(add));
+      }
       else if (useNative) {
         chrome.bookmarks.search(value, (results = []) => results.forEach(add));
       }

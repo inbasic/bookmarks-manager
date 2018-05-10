@@ -12,7 +12,7 @@
 
 var notify = (function() {
   const div = document.getElementById('notification');
-  const p = div.querySelector('p');
+  const p = div.querySelector('pre');
   let callback = function() {};
 
   div.querySelector('[data-cmd=yes]').addEventListener('click', () => {

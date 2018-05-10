@@ -11,6 +11,7 @@
     <textarea style="display: none;"></textarea> <!-- for copy title and link to clipboard -->
     <div id="search">
       <input type="search" placeholder="For fuzzy search use 'fuzzy:'">
+      <input type="button" data-cmd="open-in-tab" title="Open in a browser tab">
     </div>
     <div id="tree"></div>
     <div id="results">
@@ -51,14 +52,12 @@
       </div>
     </div>
     <div id="toolbar">
-      <input type="button" value="Collapse" data-cmd="collapse">
+      <input type="button" value="Collapse" data-cmd="collapse" title="Collapse all nodes">
       <div class="menu-button" data-id=tools>
         <input type="button" value="Tools">
         <ul>
-          <li data-cmd="validate">Validate this bookmark</li>
           <li data-cmd="update-title">Update bookmark's title</li>
           <li data-cmd="open-options" class="separator">Open options page</li>
-          <li data-cmd="open-in-tab">Open in new tab</li>
           <li data-cmd="reset-root">Reset root</li>
         </ul>
       </div>
@@ -68,7 +67,7 @@
           <li data-cmd="create-bookmark">Create new Bookmark</li>
           <li data-cmd="create-from-tab">Bookmark this Tab</li>
           <li data-cmd="create-folder">Create new Directory</li>
-          <li data-cmd="delete" class="separator">Delete this bookmark</li>
+          <li data-cmd="delete" class="separator" style="display: none;">Delete this bookmark</li>
         </ul>
       </div>
       <span></span>
@@ -105,7 +104,7 @@
     </div>
     <div id="notification">
       <div>
-        <p></p>
+        <pre></pre>
         <div>
           <input type="button" value="No" data-cmd="no">
           <input type="button" value="Yes" data-cmd="yes">

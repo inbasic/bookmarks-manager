@@ -1,9 +1,9 @@
 {
   "name": "Bookmark Manager and Viewer",
-  "short_name": "ibmanager",
+  "short_name": "bookmark-manager",
   "description": "An elegant bookmark manager with fuzzy search and more",
   "author": "InBasic",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "manifest_version": 2,
   "permissions": [
     "storage",
@@ -14,6 +14,7 @@
     "clipboardWrite"
   ],
   "background": {
+    "persistent": false,
     "scripts": [
       "common.js"
     ]

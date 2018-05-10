@@ -19,46 +19,27 @@ document.addEventListener('click', e => {
   }
   else if (cmd === 'delete') {
     const ids = tree.jstree('get_selected');
-    const id = ids[0];
-    const node = tree.jstree('get_node', id);
-    if (node.children.length) {
-      notify.warning('Directory is not empty! For your own safety only empty directories can be deleted.');
-    }
-    else {
-      notify.confirm(`Are you sure you want to delete "${node.data.url || node.text}"?`, a => {
-        if (a) {
-          chrome.bookmarks[node.type === 'folder' ? 'removeTree' : 'remove'](id, () => {
-            // jstree
-            tree.jstree('select_node', node.parent);
-            tree.jstree('delete_node', id);
-            // results
-            const results = document.querySelector('#results tbody');
-            const rtr = results.querySelector(`[data-id="${id}"]`);
-            if (rtr) {
-              rtr.parentNode.removeChild(rtr);
-            }
-            // reseting fuse
-            window.dispatchEvent(new Event('search:reset-fuse'));
-          });
-        }
-      });
-    }
-  }
-  else if (cmd === 'update-title' || cmd === 'validate') {
-    const ids = tree.jstree('get_selected');
-    const id = ids[0];
-    const node = tree.jstree('get_node', id);
-    if (node && node.data.url) {
-      notify.inline(cmd === 'validate' ? 'Validating...' : 'Fetching...');
-      chrome.runtime.sendMessage({
-        cmd,
-        url: node.data.url,
-        id
-      }, r => notify.inline(r.msg));
-    }
-    else {
-      notify.inline('Not applicable for this node');
-    }
+    const nodes = ids.map(id => tree.jstree('get_node', id));
+    console.log(nodes);
+    notify.confirm(`Are you sure you want to delete:
+  ${nodes.map((node, i) => (i + 1) + '. "' + (node.data.url || node.text) + '"').join('\n  ')}`, a => {
+      if (a) {
+        nodes.forEach(node => chrome.bookmarks[node.type === 'folder' ? 'removeTree' : 'remove'](node.id, () => {
+          // jstree
+          tree.jstree('select_node', node.parent);
+          tree.jstree('delete_node', node.id);
+          console.log(node.id);
+          // results
+          const results = document.querySelector('#results tbody');
+          const rtr = results.querySelector(`[data-id="${node.id}"]`);
+          if (rtr) {
+            rtr.parentNode.removeChild(rtr);
+          }
+          // reseting fuse
+          window.dispatchEvent(new Event('search:reset-fuse'));
+        }));
+      }
+    });
   }
   else if (cmd === 'create-folder' || cmd === 'create-bookmark' || cmd === 'create-from-tab') {
     const ids = tree.jstree('get_selected');
@@ -80,7 +61,7 @@ document.addEventListener('click', e => {
         return callback(null, 'new directory');
       }
       else if (cmd === 'create-bookmark') {
-        return callback('http://domain-name', 'new bookmark');
+        return callback('http://example.com', 'new bookmark');
       }
       else {
         chrome.tabs.query({
