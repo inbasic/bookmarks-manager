@@ -16,11 +16,12 @@ function restore() {
   document.getElementById('css').value = localStorage.getItem('css') || '';
   chrome.storage.local.get({
     width: 400,
-    height: 600
+    height: 600,
+    context: typeof InstallTrigger !== 'undefined' ? 'root________' : '0'
   }, prefs => {
-    Object.keys(prefs).forEach(name => {
-      document.getElementById(name)[typeof prefs[name] === 'boolean' ? 'checked' : 'value'] = prefs[name];
-    });
+    document.getElementById('width').value = prefs.width;
+    document.getElementById('height').value = prefs.height;
+    document.getElementById('context').value = prefs.context;
   });
 }
 
@@ -28,7 +29,8 @@ function save() {
   localStorage.setItem('css', document.getElementById('css').value || '');
   const prefs = {
     width: Math.max(300, document.getElementById('width').value),
-    height: Math.max(400, document.getElementById('height').value)
+    height: Math.max(400, document.getElementById('height').value),
+    context: document.getElementById('context').value
   };
 
   chrome.storage.local.set(prefs, () => {

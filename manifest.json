@@ -11,7 +11,9 @@
     "bookmarks",
     "chrome://favicon/*",
     "<all_urls>",
-    "clipboardWrite"
+    "clipboardWrite",
+    "notifications",
+    "contextMenus"
   ],
   "background": {
     "persistent": false,

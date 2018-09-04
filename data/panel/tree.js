@@ -31,7 +31,7 @@ tree.string.uscape = str => str
   .replace(/&lt;/g, '<')
   .replace(/&gt;/g, '>')
   .replace(/&quot;/g, '"')
-  .replace(/&#039;/g, "'")
+  .replace(/&#039;/g, `'`)
   .replace(/&amp;/g, '&');
 
 tree.jstree({
@@ -47,23 +47,23 @@ tree.jstree({
       'icon': 'd_folder'
     }
   },
-  'plugins' : ['state', 'dnd', 'types', 'contextmenu', 'conditionalselect'],
+  'plugins': ['state', 'dnd', 'types', 'contextmenu', 'conditionalselect'],
   'conditionalselect': node => node.parent !== '#',
-  'core' : {
+  'core': {
     // Content Security Policy: The page’s settings blocked the loading of a resource at blob:moz-extension://
     'worker': !/Firefox/.test(navigator.userAgent),
-    'check_callback' : (operation, node, node_parent) => {
+    'check_callback': (operation, node, parent) => {
       if (operation === 'move_node') {
         // do not allow moving of the root elements
         // do not allow moving to the root
-        if (node.parent === '#' || node_parent.id === '#') {
+        if (node.parent === '#' || parent.id === '#') {
           return false;
         }
       }
       return true;
     },
     'multiple': true,
-    'data' : (obj, cb) => {
+    'data': (obj, cb) => {
       chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id, nodes => {
         cb(nodes.map(node => {
           const children = !node.url;
@@ -81,8 +81,8 @@ tree.jstree({
               dateAdded: node.dateAdded,
               url: node.url || ''
             },
-            state : {
-              hidden : node.url && node.url.startsWith('place:')
+            state: {
+              hidden: node.url && node.url.startsWith('place:')
             }
           };
         }));
@@ -110,6 +110,13 @@ tree.jstree({
         },
         '_disabled': () => !node.data.url
       },
+      'Copy ID': {
+        'label': 'Copy ID',
+        'action': () => {
+          const ids = tree.jstree('get_selected');
+          utils.copy(ids.join('\n'));
+        }
+      },
       'Rename Title': {
         'separator_before': true,
         'label': 'Rename Title',
@@ -130,7 +137,13 @@ tree.jstree({
         'action': () => {
           const input = document.querySelector('#search input');
           const ids = tree.jstree('get_selected');
-          input.value = (node.data.url, ids.length > 1 ? 'id:' : 'root:') + ids.join(',');
+          if (ids.length > 1) {
+            input.value = (node.data.url, 'id:') + ids.join(',');
+          }
+          else {
+            const node = tree.jstree('get_node', ids[0]);
+            input.value = (node.data.url, node.data.url ? 'id:' : 'root:') + ids.join(',');
+          }
           input.dispatchEvent(new Event('search'));
         }
       },
@@ -148,12 +161,12 @@ tree.jstree({
           }
         },
         '_disabled': () => node.data.url
-      },
+      }
     })
   }
 });
 
-tree.on('dblclick.jstree', (e, data) => {
+tree.on('dblclick.jstree', e => {
   const ids = tree.jstree('get_selected');
   const node = tree.jstree('get_node', ids[0]);
 

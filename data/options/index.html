@@ -12,6 +12,7 @@
     td:last-child {
       text-align: right;
     }
+    input[type=text],
     input[type=number] {
       width: 80px;
       outline: none;
@@ -33,6 +34,13 @@
       <td><label for="height">Panel height (in pixels) (min: 400px):</label></td>
       <td><input id="height" type="number" min="400"></td>
     </tr>
+    <tr>
+      <td>Bookmark from right-click context menu over links</td>
+      <td><input type="text" id="context" placeholder="Folder ID"></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="text-align: left; font-size: 90%; color: #6d6d6d;">Clear the box to disable the right-click context menu over links, otherwise place the ID of the bookmark folder in the box. You can find the id from right-click context menu over a bookmark folder in the extension's popup (extension restart is required)</td>
+    </tr>
   </table>
   <p>
     Custom styling (Read <a href="http://add0n.com/bookmarks-manager.html">FAQs</a> page for more info):
@@ -49,6 +57,6 @@
     <span id="status"></span>
   </p>
   <script src="index.js"></script>
-  <script async src="explore.js"></script>
+  <script async src="matched.js"></script>
 </body>
 </html>

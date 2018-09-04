@@ -10,6 +10,31 @@
 
 'use strict';
 
+var notify = message => chrome.notifications.create({
+  iconUrl: 'data/icons/48.png',
+  title: chrome.runtime.getManifest().name,
+  message,
+  type: 'basic'
+});
+
+var title = url => new Promise((resolve, reject) => {
+  const req = new XMLHttpRequest();
+  req.open('GET', url);
+  req.responseType = 'document';
+  req.onload = () => {
+    const title = req.responseXML.title;
+    if (title) {
+      resolve(title);
+    }
+    else {
+      reject('Cannot detect "title" from GET response');
+    }
+  };
+  req.onerror = e => reject(e.type + ' ' + req.status);
+  req.ontimeout = () => reject('cannot resolve title (timeout)');
+  req.send();
+});
+
 chrome.runtime.onMessage.addListener((request, sender, response) => {
   if (request.cmd === 'validate') {
     const req = new XMLHttpRequest();
@@ -36,30 +61,14 @@ chrome.runtime.onMessage.addListener((request, sender, response) => {
     return true;
   }
   else if (request.cmd === 'update-title') {
-    const req = new XMLHttpRequest();
-    req.open('GET', request.url);
-    req.responseType = 'document';
-    req.onload = () => {
-      const title = req.responseXML.title;
-      if (title) {
-        chrome.runtime.sendMessage({
-          cmd: 'title-info',
-          id: request.id,
-          title
-        });
-      }
-      else {
-        chrome.runtime.sendMessage({
-          cmd: 'notify.inline',
-          msg: 'Cannot detect "title" from GET response'
-        });
-      }
-    };
-    req.onerror = e => chrome.runtime.sendMessage({
+    title(request.url).then(title => chrome.runtime.sendMessage({
+      cmd: 'title-info',
+      id: request.id,
+      title
+    })).catch(msg => chrome.runtime.sendMessage({
       cmd: 'notify.inline',
-      msg: e.type + ' ' + req.status
-    });
-    req.send();
+      msg
+    }));
   }
 });
 
@@ -118,12 +127,44 @@ chrome.bookmarks.onCreated.addListener(update);
 chrome.bookmarks.onRemoved.addListener(update);
 update();
 
-// FAQs & Feedback
+// context menu
+{
+  const context = typeof InstallTrigger !== 'undefined' ? 'root________' : '0';
+
+  const callback = () => chrome.storage.local.get({
+    context
+  }, prefs => prefs.context && chrome.contextMenus.create({
+    id: 'bookmark-link',
+    title: 'Bookmark this Link',
+    contexts: ['link'],
+    targetUrlPatterns: ['*://*/*']
+  }));
+  chrome.runtime.onInstalled.addListener(callback);
+  chrome.runtime.onStartup.addListener(callback);
+
+  chrome.contextMenus.onClicked.addListener(info => {
+    if (info.menuItemId === 'bookmark-link') {
+      title(info.linkUrl).catch(() => info.selectionText || info.linkUrl).then(title => chrome.storage.local.get({
+        context
+      }, prefs => chrome.bookmarks.create({
+        parentId: prefs.context,
+        title,
+        url: info.linkUrl
+      }, () => {
+        const lastError = chrome.runtime.lastError;
+        if (lastError) {
+          notify(lastError.message);
+        }
+      })));
+    }
+  });
+}
+
 // FAQs & Feedback
 chrome.storage.local.get({
   'version': null,
-  'faqs': false,
-  'last-update': 0,
+  'faqs': true,
+  'last-update': 0
 }, prefs => {
   const version = chrome.runtime.getManifest().version;
 
