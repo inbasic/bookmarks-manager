@@ -22,6 +22,7 @@ document.addEventListener('click', e => {
     const nodes = ids.map(id => tree.jstree('get_node', id));
     console.log(nodes);
     notify.confirm(`Are you sure you want to delete:
+
   ${nodes.map((node, i) => (i + 1) + '. "' + (node.data.url || node.text) + '"').join('\n  ')}`, a => {
       if (a) {
         nodes.forEach(node => chrome.bookmarks[node.type === 'folder' ? 'removeTree' : 'remove'](node.id, () => {

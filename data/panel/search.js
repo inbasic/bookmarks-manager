@@ -21,7 +21,6 @@
       search.focus();
     }
   });
-  window.setTimeout(() => search.focus(), 100);
   // reset fuse on edit
   window.addEventListener('search:reset-fuse', () => fuse = null);
   function prepare() {

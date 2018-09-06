@@ -13,8 +13,10 @@ body {
 }
 body,
 table {
-  font-size: 12px;
   font-family: arial,sans-serif;
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 table {
   width: 100%;
@@ -30,12 +32,12 @@ input[type=text],
 #properties span {
   border: solid 1px #b7b7b7;
   background-color: #fff;
-  font-size: 10px;
+  font-size: 11px;
 }
 input[type=search],
 input[type=text],
 #properties span {
-  height: 20px;
+  height: 22px;
   padding: 0 5px;
 }
 input[type=search]:focus,
@@ -43,10 +45,13 @@ input[type=text]:focus {
   border-color: #419bf9;
   box-shadow: 0 0 1px #8ab8e7;
 }
+input[type=submit],
 input[type=button] {
   cursor: pointer;
+  min-height: 22px;
+}
+input[type=button] {
   margin: 0 2px;
-  min-height: 20px;
 }
 input[type=button]:active {
   opacity: 0.5;
@@ -136,8 +141,8 @@ input:disabled {
 }#search input[type=button] {
   width: 26px;
   height: 26px;
-  background: url('icons/window.svg') center center no-repeat;
-  background-size: 14px;
+  background: #fff url('icons/window.svg') center center no-repeat;
+  background-size: 18px;
 }
 #tree {
   flex: 1;
@@ -266,6 +271,7 @@ input:disabled {
   width: 100%;
   background-color: #f2f2f2;
   font-size: 11px;
+  box-sizing: border-box;
 }
 #toolbar {
   background-color: #f2f2f2;
@@ -301,10 +307,15 @@ input:disabled {
   display: flex;
   flex-direction: column;
   border: solid 3px #ccc;
+  display: flex;
+  flex-direction: column;
 }
-#notification>div>pre {
+#notification>div>span {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: pre;
+  flex: 1;
+  padding-bottom: 10px;
 }
 #notification>div>div {
   display: flex;
@@ -320,6 +331,8 @@ input:disabled {
 }
 #notification input {
   min-width: 90px;
+  background-color: rgba(234, 234, 234, 0.25);
+  color: #000;
 }
 /* inline notification */
 #toolbar>span {

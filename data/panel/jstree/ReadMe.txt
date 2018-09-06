@@ -1,1 +1,1 @@
-https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.3/jstree.min.js
+https://cdn.jsdelivr.net/npm/jstree@3.3.5/dist/jstree.js

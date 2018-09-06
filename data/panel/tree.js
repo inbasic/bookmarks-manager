@@ -19,8 +19,12 @@ function getRoot() {
 }
 
 var tree = $('#tree');
-
+tree.isFeed = url => url && (
+  url.indexOf('rss') !== -1 ||
+  url.indexOf('feed') !== -1
+);
 tree.string = {};
+
 tree.string.escape = str => str
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -47,7 +51,7 @@ tree.jstree({
       'icon': 'd_folder'
     }
   },
-  'plugins': ['state', 'dnd', 'types', 'contextmenu', 'conditionalselect'],
+  'plugins': ['state', 'dnd', 'types', 'contextmenu', 'conditionalselect', 'sort'],
   'conditionalselect': node => node.parent !== '#',
   'core': {
     // Content Security Policy: The page’s settings blocked the loading of a resource at blob:moz-extension://
@@ -56,7 +60,7 @@ tree.jstree({
       if (operation === 'move_node') {
         // do not allow moving of the root elements
         // do not allow moving to the root
-        if (node.parent === '#' || parent.id === '#') {
+        if (node.parent === '#' || parent.id === '#' || node.id.startsWith('feed-')) {
           return false;
         }
       }
@@ -64,29 +68,83 @@ tree.jstree({
     },
     'multiple': true,
     'data': (obj, cb) => {
-      chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id, nodes => {
-        cb(nodes.map(node => {
-          const children = !node.url;
-          return {
-            text: tree.string.escape(node.title),
-            id: node.id,
-            type: children ? (obj.id === '#' ? 'd_folder' : 'folder') : 'file',
-            icon: children ? null : utils.favicon(node.url),
-            children,
-            a_attr: { // open with middle-click
-              href: node.url || '#'
-            },
-            data: {
-              dateGroupModified: node.dateGroupModified,
-              dateAdded: node.dateAdded,
-              url: node.url || ''
-            },
-            state: {
-              hidden: node.url && node.url.startsWith('place:')
+      if (obj.data && obj.data.feed) {
+        fetch(obj.data.url).then(r => r.text())
+          .then(str => (new DOMParser()).parseFromString(str, 'text/xml'))
+          .then(doc => {
+            const items = [...doc.querySelectorAll('item')];
+            if (items && items.length) {
+              cb(items.map(item => {
+                const url = item.querySelector('link').textContent;
+                const title = item.querySelector('title').textContent || 'unknown title';
+                const date = item.querySelector('pubDate').textContent || '';
+                return {
+                  text: tree.string.escape(title),
+                  id: 'feed-' + Math.random(),
+                  type: 'file',
+                  icon: utils.favicon(url),
+                  children: false,
+                  a_attr: { // open with middle-click
+                    href: url
+                  },
+                  data: {
+                    dateGroupModified: date,
+                    dateAdded: date,
+                    url,
+                    feed: tree.isFeed(url)
+                  }
+                };
+              }));
             }
-          };
-        }));
-      });
+            else {
+              throw Error('empty feed');
+            }
+          }).catch(e => {
+            cb([{
+              text: e.message || 'unknown error',
+              id: 'feed-' + Math.random(),
+              type: 'file',
+              icon: '',
+              children: false,
+              a_attr: { // open with middle-click
+                href: ''
+              },
+              data: {
+                dateGroupModified: '',
+                dateAdded: '',
+                url: '',
+                feed: false
+              }
+            }])
+          });
+      }
+      else {
+        chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id, nodes => {
+          cb(nodes.map(node => {
+            const feed = tree.isFeed(node.url);
+            const children = !node.url || feed === true;
+            return {
+              text: tree.string.escape(node.title),
+              id: node.id,
+              type: children ? (obj.id === '#' ? 'd_folder' : 'folder') : 'file',
+              icon: children ? null : utils.favicon(node.url),
+              children,
+              a_attr: { // open with middle-click
+                href: node.url || '#'
+              },
+              data: {
+                dateGroupModified: node.dateGroupModified,
+                dateAdded: node.dateAdded,
+                url: node.url || '',
+                feed
+              },
+              state: {
+                hidden: node.url && node.url.startsWith('place:')
+              }
+            };
+          }));
+        });
+      }
     }
   },
   'contextmenu': {
@@ -163,14 +221,30 @@ tree.jstree({
         '_disabled': () => node.data.url
       }
     })
+  },
+  'sort': function(a, b) {
+    if (localStorage.getItem('sort') === 'true') {
+      a = this.get_node(a);
+      b = this.get_node(b);
+
+      if (a.data.url && !b.data.url) {
+        return 1;
+      }
+      if (b.data.url && !a.data.url) {
+        return -1;
+      }
+      return a.text > b.text ? -1 : 1;
+    }
   }
 });
+
+tree.on('loaded.jstree', () => tree.focus());
 
 tree.on('dblclick.jstree', e => {
   const ids = tree.jstree('get_selected');
   const node = tree.jstree('get_node', ids[0]);
 
-  if (node && node.data && node.data.url) {
+  if (node && node.data && node.data.url && node.data.feed === false) {
     const url = node.data.url;
     chrome.tabs.query({
       active: true,
@@ -183,7 +257,9 @@ tree.on('dblclick.jstree', e => {
       else {
         chrome.tabs.create({url});
       }
-      window.close();
+      if (location.search.indexOf('in=') === -1) {
+        window.close();
+      }
     });
   }
 });

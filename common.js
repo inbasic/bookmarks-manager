@@ -129,16 +129,23 @@ update();
 
 // context menu
 {
-  const context = typeof InstallTrigger !== 'undefined' ? 'root________' : '0';
+  const context = '';
 
-  const callback = () => chrome.storage.local.get({
-    context
-  }, prefs => prefs.context && chrome.contextMenus.create({
-    id: 'bookmark-link',
-    title: 'Bookmark this Link',
-    contexts: ['link'],
-    targetUrlPatterns: ['*://*/*']
-  }));
+  const callback = () => {
+    chrome.storage.local.get({
+      context,
+      mode: 'popup'
+    }, prefs => {
+      if (prefs.context) {
+        chrome.contextMenus.create({
+          id: 'bookmark-link',
+          title: 'Bookmark this Link',
+          contexts: ['link'],
+          targetUrlPatterns: ['*://*/*']
+        });
+      }
+    });
+  };
   chrome.runtime.onInstalled.addListener(callback);
   chrome.runtime.onStartup.addListener(callback);
 
@@ -159,6 +166,22 @@ update();
     }
   });
 }
+
+// mode
+{
+  const callback = () => chrome.storage.local.get({
+    mode: 'popup'
+  }, prefs => chrome.browserAction.setPopup({
+    popup: prefs.mode === 'popup' ? 'data/panel/index.html' : ''
+  }));
+
+  chrome.runtime.onInstalled.addListener(callback);
+  chrome.runtime.onStartup.addListener(callback);
+  chrome.storage.onChanged.addListener(prefs => prefs.mode && callback());
+}
+chrome.browserAction.onClicked.addListener(() => chrome.tabs.create({
+  url: '/data/panel/index.html?in=tab'
+}));
 
 // FAQs & Feedback
 chrome.storage.local.get({

@@ -14,23 +14,29 @@ var log = document.getElementById('status');
 
 function restore() {
   document.getElementById('css').value = localStorage.getItem('css') || '';
+  document.getElementById('sort').checked = localStorage.getItem('sort') === 'true';
+
   chrome.storage.local.get({
     width: 400,
     height: 600,
-    context: typeof InstallTrigger !== 'undefined' ? 'root________' : '0'
+    context: '',
+    mode: 'popup'
   }, prefs => {
     document.getElementById('width').value = prefs.width;
     document.getElementById('height').value = prefs.height;
     document.getElementById('context').value = prefs.context;
+    document.getElementById('mode').value = prefs.mode;
   });
 }
 
 function save() {
   localStorage.setItem('css', document.getElementById('css').value || '');
+  localStorage.setItem('sort', document.getElementById('sort').checked);
   const prefs = {
     width: Math.max(300, document.getElementById('width').value),
     height: Math.max(400, document.getElementById('height').value),
-    context: document.getElementById('context').value
+    context: document.getElementById('context').value,
+    mode: document.getElementById('mode').value
   };
 
   chrome.storage.local.set(prefs, () => {
