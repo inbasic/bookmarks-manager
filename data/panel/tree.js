@@ -24,6 +24,10 @@ tree.isFeed = url => url && (
   url.indexOf('feed') !== -1
 );
 tree.string = {};
+tree.plugins = ['state', 'dnd', 'types', 'contextmenu', 'conditionalselect'];
+if (localStorage.getItem('sort') === 'true') {
+  tree.plugins.push('sort');
+}
 
 tree.string.escape = str => str
   .replace(/&/g, '&amp;')
@@ -51,18 +55,20 @@ tree.jstree({
       'icon': 'd_folder'
     }
   },
-  'plugins': ['state', 'dnd', 'types', 'contextmenu', 'conditionalselect', 'sort'],
-  'conditionalselect': node => node.parent !== '#',
+  'plugins': tree.plugins,
+  // 'conditionalselect': node => node.parent !== '#',
   'core': {
     // Content Security Policy: The page’s settings blocked the loading of a resource at blob:moz-extension://
     'worker': !/Firefox/.test(navigator.userAgent),
     'check_callback': (operation, node, parent) => {
+      // do not allow drag and drop in sort mode
+      if (localStorage.getItem('sort') === 'true') {
+        return false;
+      }
       if (operation === 'move_node') {
         // do not allow moving of the root elements
         // do not allow moving to the root
-        if (node.parent === '#' || parent.id === '#' || node.id.startsWith('feed-')) {
-          return false;
-        }
+        return node.data.drag;
       }
       return true;
     },
@@ -91,7 +97,8 @@ tree.jstree({
                     dateGroupModified: date,
                     dateAdded: date,
                     url,
-                    feed: tree.isFeed(url)
+                    feed: tree.isFeed(url),
+                    drag: false
                   }
                 };
               }));
@@ -113,9 +120,10 @@ tree.jstree({
                 dateGroupModified: '',
                 dateAdded: '',
                 url: '',
-                feed: false
+                feed: false,
+                drag: false
               }
-            }])
+            }]);
           });
       }
       else {
@@ -123,10 +131,11 @@ tree.jstree({
           cb(nodes.map(node => {
             const feed = tree.isFeed(node.url);
             const children = !node.url || feed === true;
+            const drag = node.parentId !== '0' && node.parentId !== 'root________';
             return {
               text: tree.string.escape(node.title),
               id: node.id,
-              type: children ? (obj.id === '#' ? 'd_folder' : 'folder') : 'file',
+              type: children ? (drag ? 'folder' : 'd_folder') : 'file',
               icon: children ? null : utils.favicon(node.url),
               children,
               a_attr: { // open with middle-click
@@ -136,7 +145,8 @@ tree.jstree({
                 dateGroupModified: node.dateGroupModified,
                 dateAdded: node.dateAdded,
                 url: node.url || '',
-                feed
+                feed,
+                drag
               },
               state: {
                 hidden: node.url && node.url.startsWith('place:')
@@ -178,7 +188,8 @@ tree.jstree({
       'Rename Title': {
         'separator_before': true,
         'label': 'Rename Title',
-        'action': () => window.dispatchEvent(new Event('properties:select-title'))
+        'action': () => window.dispatchEvent(new Event('properties:select-title')),
+        '_disabled': () => node.data.drag === false
       },
       'Edit Link': {
         'label': 'Edit Link',
@@ -187,7 +198,8 @@ tree.jstree({
       },
       'Delete Bookmark': {
         'label': 'Delete Bookmark',
-        'action': () => document.querySelector('#toolbar [data-cmd="delete"]').click()
+        'action': () => document.querySelector('#toolbar [data-cmd="delete"]').click(),
+        '_disabled': () => node.data.drag === false
       },
       'Validate Bookmark': {
         'separator_before': true,
@@ -223,18 +235,16 @@ tree.jstree({
     })
   },
   'sort': function(a, b) {
-    if (localStorage.getItem('sort') === 'true') {
-      a = this.get_node(a);
-      b = this.get_node(b);
+    a = this.get_node(a);
+    b = this.get_node(b);
 
-      if (a.data.url && !b.data.url) {
-        return 1;
-      }
-      if (b.data.url && !a.data.url) {
-        return -1;
-      }
-      return a.text > b.text ? -1 : 1;
+    if (a.data.url && !b.data.url) {
+      return 1;
     }
+    if (b.data.url && !a.data.url) {
+      return -1;
+    }
+    return a.text > b.text ? -1 : 1;
   }
 });
 
@@ -306,7 +316,7 @@ tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
   else {
     chrome.bookmarks.move(data.node.id, {
       parentId: data.parent,
-      index: data.position
+      index: data.position + (data.position > data.old_position ? 1 : 0)
     }, () => {
       const lastError = chrome.runtime.lastError;
       if (lastError) {

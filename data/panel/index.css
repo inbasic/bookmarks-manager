@@ -260,6 +260,8 @@ input:disabled {
 }
 #properties input[type=text]:disabled {
   background-color: transparent;
+  opacity: 1!important;
+  color: #000;
 }
 #properties input[type=submit]:disabled {
   background-color: #ccc;

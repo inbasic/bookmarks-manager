@@ -74,8 +74,8 @@
       <input type="button" value="Bookmark Manager" data-cmd="bookmark-manager">
     </div>
     <div id="properties">
-      <form id="title"></form>
-      <form id="url"></form>
+      <form id="title" autocomplete="off"></form>
+      <form id="url" autocomplete="off"></form>
       <table>
         <colgroup>
           <col width="60">
@@ -85,13 +85,13 @@
         <tbody>
           <tr>
             <td>Title</td>
-            <td><input dir="auto" type="text" form="title"></td>
+            <td><input dir="auto" type="text" form="title" disabled="true"></td>
             <td><input data-cmd="change" type="submit" value="&#xe800;" disabled="true" form="title"></td>
           </tr>
           <tr>
             <form>
               <td>Address</td>
-              <td><input type="text" form="url"></td>
+              <td><input type="text" form="url" disabled="true"></td>
               <td><input data-cmd="change" type="submit" value="&#xe800;" disabled="true" form="url"></td>
             </form>
           </tr>

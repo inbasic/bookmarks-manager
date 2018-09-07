@@ -22,7 +22,7 @@ var title = url => new Promise((resolve, reject) => {
   req.open('GET', url);
   req.responseType = 'document';
   req.onload = () => {
-    const title = req.responseXML.title;
+    const title = req.responseXML ? req.responseXML.title : '';
     if (title) {
       resolve(title);
     }

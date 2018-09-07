@@ -73,9 +73,10 @@ tree.on('select_node.jstree', (e, data) => {
   title.dispatchEvent(new Event('keyup', {
     bubbles: true
   }));
-  title.disabled = data.node.id.startsWith('feed-');
+
+  title.disabled = data.node.id.startsWith('feed-') || data.node.data.drag === false;
   const url = properties.querySelector('tr:nth-child(2) input');
-  url.disabled = data.node.id.startsWith('feed-') || data.node.data.url === '';
+  url.disabled = data.node.data.drag === false || data.node.data.url === '';
   url.dataset.value = url.value = data.node.data.url;
   url.dispatchEvent(new Event('keyup', {
     bubbles: true

@@ -3,7 +3,7 @@
   "short_name": "bookmark-manager",
   "description": "An elegant bookmark manager with fuzzy search and more",
   "author": "InBasic",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "manifest_version": 2,
   "permissions": [
     "storage",
