@@ -60,7 +60,7 @@ tree.jstree({
   'core': {
     // Content Security Policy: The page’s settings blocked the loading of a resource at blob:moz-extension://
     'worker': !/Firefox/.test(navigator.userAgent),
-    'check_callback': (operation, node, parent) => {
+    'check_callback': (operation, node) => {
       // do not allow drag and drop in sort mode
       if (localStorage.getItem('sort') === 'true') {
         return false;
@@ -252,29 +252,47 @@ if(localStorage.getItem('searchfocus') === 'false') {
   tree.on('loaded.jstree', () => tree.focus());
 }
 
-tree.on('dblclick.jstree', e => {
-  const ids = tree.jstree('get_selected');
-  const node = tree.jstree('get_node', ids[0]);
-
-  if (node && node.data && node.data.url && node.data.feed === false) {
-    const url = node.data.url;
-    chrome.tabs.query({
-      active: true,
-      currentWindow: true
-    }, tabs => {
-      // if current tab is new tab, update it
-      if (tabs.length && tabs[0].url === 'chrome://newtab/' || tabs[0].url === 'about:newtab' || e.shiftKey) {
-        chrome.tabs.update({url});
-      }
-      else {
-        chrome.tabs.create({url});
-      }
-      if (location.search.indexOf('in=') === -1) {
-        window.close();
-      }
-    });
-  }
-});
+// open links on dblclick or Enter
+{
+  const dblclick = (node, e = {shiftKey: false}) => {
+    if (node && node.data && node.data.url && node.data.feed === false) {
+      const url = node.data.url;
+      chrome.tabs.query({
+        active: true,
+        currentWindow: true
+      }, tabs => {
+        // if current tab is new tab, update it
+        if (tabs.length && tabs[0].url === 'chrome://newtab/' || tabs[0].url === 'about:newtab' || e.shiftKey) {
+          chrome.tabs.update({url});
+        }
+        else {
+          chrome.tabs.create({url});
+        }
+        if (location.search.indexOf('in=') === -1) {
+          window.close();
+        }
+      });
+    }
+  };
+  tree.on('dblclick.jstree', e => {
+    const ids = tree.jstree('get_selected');
+    const node = tree.jstree('get_node', ids[0]);
+    dblclick(node, e);
+  });
+  // on Enter
+  tree.on('keydown.tree', e => {
+    if (e.key !== 'Enter') {
+      return true;
+    }
+    const selected = tree.jstree('get_selected');
+    const current = tree.jstree('get_node', e.target);
+    if (current && selected.indexOf(current.id) !== -1) {
+      dblclick(current);
+      return false;
+    }
+    return true;
+  });
+}
 
 tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
   if (e.type === 'copy_node') { // copy

@@ -12,12 +12,19 @@
 'use strict';
 
 (function(search, results, tbody, trC, close, validate) {
+  // should the search box get the focus
+  if(localStorage.getItem('searchfocus') === 'true') {
+    document.addEventListener('DOMContentLoaded', () => search.focus());
+  }
+  //
   let useNative = false;
   let fuse;
   let closed = false;
   // focus searchbox on Ctrl + F
   window.addEventListener('keydown', e => {
     if ((e.metaKey && e.keyCode === 70) || (e.ctrlKey && e.keyCode === 70)) {
+      e.preventDefault();
+      e.stopPropagation();
       search.focus();
     }
   });
@@ -232,7 +239,6 @@
         td.textContent = 'validating...';
         td.scrollIntoViewIfNeeded();
         return check(url).then(r => {
-
           tr.dataset.valid = r.valid;
           td.textContent = url;
         });

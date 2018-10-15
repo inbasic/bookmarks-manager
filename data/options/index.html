@@ -21,6 +21,10 @@
       margin-top: 5px;
       width: 100%;
     }
+    hr {
+      border: none;
+      border-top: dashed 1px #ccc;
+    }
     .note {
       text-align: left !important;
       font-size: 90%;
@@ -40,35 +44,23 @@
       <td><input id="height" type="number" min="400"></td>
     </tr>
     <tr>
-      <td><label for="sort">Sort bookmark tree:</label></td>
+      <td><label for="sort">Sort bookmark tree<sup>1</sup>:</label></td>
       <td><input id="sort" type="checkbox"></td>
     </tr>
     <tr>
-      <td colspan="2" class="note">If sort is enabled, you cannot use the drag and drop operation anymore</td>
-    </tr>
-    <tr>
-      <td>UI mode</td>
+      <td>Open the manager window in:<sup>2</sup>:</td>
       <td><select id="mode">
         <option value="popup">Popup</option>
         <option value="tab">New Tab</option>
       </select></td>
     </tr>
     <tr>
-      <td colspan="2" class="note">In Firefox and Opera, you can also open the UI in the sidebar area too</td>
-    </tr>
-    <tr>
-      <td>Bookmark from right-click context menu over links</td>
+      <td>Bookmark from right-click context menu over links<sup>3</sup>:</td>
       <td><input type="text" id="context" placeholder="Folder ID"></td>
     </tr>
     <tr>
-      <td colspan="2" class="note">Clear the box to disable the right-click context menu over links, otherwise place the ID of the bookmark folder in the box. You can find the id from right-click context menu over a bookmark folder in the extension's popup (extension restart is required)</td>
-    </tr>
-    <tr>
-      <td><label for="sort">Set focus to search on open:</label></td>
+      <td><label for="searchfocus">Set focus to the search box on open<sup>4</sup>:</label></td>
       <td><input id="searchfocus" type="checkbox"></td>
-    </tr>
-    <tr>
-      <td colspan="2" class="note">Check this box to automatically set the focus to the search box when opening extension</td>
     </tr>
   </table>
   <p>
@@ -84,6 +76,16 @@
     <button id="support">Support Development</button>
     <button id="reset">Reset</button> - <button id="save">Save</button>
     <span id="status"></span>
+  </p>
+  <hr>
+  <p class="note">
+    1. If sort is enabled, you cannot use the drag and drop operation anymore
+    <br>
+    2. In Firefox and Opera, you can also open the manager window in the browser sidebar area too
+    <br>
+    3. Clear the box to disable the right-click context menu over links, otherwise place the ID of the bookmark folder in the box. You can find the id from right-click context menu over a bookmark folder in the extension's popup (extension restart is required)
+    <br>
+    4. Check this box to automatically set the focus to the search box when opening the manager window. The default focus is on the bookmark tree and you can focus the search box using Ctrl + F.
   </p>
   <script src="index.js"></script>
   <script async src="matched.js"></script>
