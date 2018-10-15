@@ -248,7 +248,9 @@ tree.jstree({
   }
 });
 
-tree.on('loaded.jstree', () => tree.focus());
+if(localStorage.getItem('searchfocus') === 'false') {
+  tree.on('loaded.jstree', () => tree.focus());
+}
 
 tree.on('dblclick.jstree', e => {
   const ids = tree.jstree('get_selected');
