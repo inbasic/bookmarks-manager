@@ -67,6 +67,8 @@
       up(id);
     });
   }
+  // prevent old searches from populating
+  var index = 0;
 
   function add(obj) {
     const node = document.importNode(trC.content, true);
@@ -93,13 +95,21 @@
   }
 
   function perform() {
-    let value = search.value;
+    let value = search.value.trim();
 
     results.style.display = value ? 'flex' : 'none';
     closed = !value;
     validate.disabled = false;
 
     if (value.length > 1) {
+      // to not search duplicates
+      if (perform.value === value) {
+        return;
+      }
+      perform.value = value;
+      // updating index
+      index += 1;
+
       if (value.startsWith('fuzzy:')) {
         useNative = false;
         value = value.replace(/fuzzy:\s*/, '');
@@ -110,24 +120,38 @@
       }
 
       tbody.textContent = '';
+
+      const next = (i => {
+        return (results = []) => {
+          if (i === index) {
+            results.forEach(add);
+          }
+        };
+      })(index);
+
       if (value.startsWith('root:')) {
         const id = value.replace(/root:\s*/, '');
-        chrome.bookmarks.getChildren(id, (results = []) => results.forEach(add));
+        chrome.bookmarks.getChildren(id, next);
       }
       else if (value.startsWith('id:')) {
         const ids = value.replace(/id:\s*/, '').split(/,\s*/);
-        console.log(ids);
-        chrome.bookmarks.get(ids, (results = []) => results.forEach(add));
+        chrome.bookmarks.get(ids, next);
       }
       else if (useNative) {
-        chrome.bookmarks.search(value, (results = []) => results.forEach(add));
+        chrome.bookmarks.search(value, next);
       }
       else {
+        const i = index;
         (fuse ? Promise.resolve() : prepare()).then(() => {
-          const matches = fuse.search(value);
-          matches.forEach(add);
+          if (i === index) {
+            const matches = fuse.search(value);
+            matches.forEach(add);
+          }
         });
       }
+    }
+    else {
+      perform.value = '';
     }
   }
 
