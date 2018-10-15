@@ -112,6 +112,45 @@ document.addEventListener('click', e => {
     }, () => chrome.runtime.lastError && notify.warning(chrome.runtime.lastError.message));
   }
 });
+// keyboard shortcut
+document.addEventListener('keyup', e => {
+  if (e.ctrlKey && e.shiftKey) {
+    switch(e.key) {
+      case 'C':
+        document.querySelector('[data-cmd=collapse]').click();
+        break;
+      case 'U':
+        document.querySelector('[data-cmd=update-title]').click();
+        break;
+      case 'O':
+        document.querySelector('[data-cmd=open-options]').click();
+        break;
+      case 'R':
+        document.querySelector('[data-cmd=reset-root]').click();
+        break;
+      case 'B':
+        document.querySelector('[data-cmd=create-bookmark]').click();
+        break;
+      case 'T':
+        document.querySelector('[data-cmd=create-from-tab]').click();
+        break;
+      case 'D':
+        document.querySelector('[data-cmd=create-folder]').click();
+        break;
+      case 'Delete':
+        document.querySelector('[data-cmd=create-folder]').click();
+        break;
+      case 'E':
+        window.dispatchEvent(new Event('properties:select-title'));
+        break;
+      case 'L':
+        tree.focus();
+        break;
+    }
+    e.stopPropagation();
+    e.preventDefault();
+  }
+});
 
 chrome.runtime.onMessage.addListener(request => {
   if (request.cmd === 'title-info') {

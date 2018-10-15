@@ -29,7 +29,10 @@
           </colgroup>
           <thead>
             <tr>
-              <th data-sort="td">Title</th>
+              <th data-sort="td">
+                <span>Title</span>
+                <span data-id=count></span>
+              </th>
               <th data-sort="td:last-child">
                 <div data-id="address">
                   <span>Address</span>
@@ -52,22 +55,22 @@
       </div>
     </div>
     <div id="toolbar">
-      <input type="button" value="Collapse" data-cmd="collapse" title="Collapse all nodes">
+      <input type="button" value="Collapse" data-cmd="collapse" title="Collapse all nodes (Ctrl + Shift + C)">
       <div class="menu-button" data-id=tools>
         <input type="button" value="Tools">
         <ul>
-          <li data-cmd="update-title">Update bookmark's title</li>
-          <li data-cmd="open-options" class="separator">Open options page</li>
-          <li data-cmd="reset-root">Reset root</li>
+          <li data-cmd="update-title" title="Ctrl + Shift + U">Update bookmark's title</li>
+          <li data-cmd="open-options" title="Ctrl + Shift + O" class="separator">Open options page</li>
+          <li data-cmd="reset-root" title="Ctrl + Shift + R">Reset root</li>
         </ul>
       </div>
       <div class="menu-button">
         <input type="button" value="Bookmark">
         <ul>
-          <li data-cmd="create-bookmark">Create new Bookmark</li>
-          <li data-cmd="create-from-tab">Bookmark this Tab</li>
-          <li data-cmd="create-folder">Create new Directory</li>
-          <li data-cmd="delete" class="separator" style="display: none;">Delete this bookmark</li>
+          <li data-cmd="create-bookmark" title="Ctrl +Shift + B">Create new Bookmark</li>
+          <li data-cmd="create-from-tab" title="Ctrl + Shift + T">Bookmark this Tab</li>
+          <li data-cmd="create-folder" title="Ctrl + Shift + D">Create new Directory</li>
+          <li data-cmd="delete" title="Ctrl + Shift + Delete" class="separator" style="display: none;">Delete this bookmark</li>
         </ul>
       </div>
       <span></span>

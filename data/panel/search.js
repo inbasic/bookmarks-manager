@@ -11,7 +11,7 @@
 /* globals Fuse, utils */
 'use strict';
 
-(function(search, results, tbody, trC, close, validate) {
+(function(search, results, count, tbody, trC, close, validate) {
   // should the search box get the focus
   if(localStorage.getItem('searchfocus') === 'true') {
     document.addEventListener('DOMContentLoaded', () => search.focus());
@@ -132,6 +132,7 @@
         return (results = []) => {
           if (i === index) {
             results.forEach(add);
+            count.textContent = ` (${results.length})`;
           }
         };
       })(index);
@@ -148,17 +149,14 @@
         chrome.bookmarks.search(value, next);
       }
       else {
-        const i = index;
         (fuse ? Promise.resolve() : prepare()).then(() => {
-          if (i === index) {
-            const matches = fuse.search(value);
-            matches.forEach(add);
-          }
+          next(fuse.search(value));
         });
       }
     }
     else {
       perform.value = '';
+      count.textContent = '';
     }
   }
 
@@ -249,6 +247,7 @@
 })(
   document.querySelector('#search input'),
   document.querySelector('#results'),
+  document.querySelector('#results [data-id=count]'),
   document.querySelector('#results tbody'),
   document.querySelector('#results template'),
   document.querySelector('#results [data-id=address] input[data-cmd=close]'),
