@@ -61,14 +61,8 @@ chrome.runtime.onMessage.addListener((request, sender, response) => {
     return true;
   }
   else if (request.cmd === 'update-title') {
-    title(request.url).then(title => chrome.runtime.sendMessage({
-      cmd: 'title-info',
-      id: request.id,
-      title
-    })).catch(msg => chrome.runtime.sendMessage({
-      cmd: 'notify.inline',
-      msg
-    }));
+    title(request.url).then(title => response({title}), error => response({error}));
+    return true;
   }
 });
 
@@ -80,7 +74,7 @@ function activate(tabId) {
       '32': 'data/icons/bookmarked/32.png',
       '64': 'data/icons/bookmarked/64.png'
     }
-  });
+  }, () => chrome.runtime.lastError);
 }
 function deactivate(tabId) {
   chrome.browserAction.setIcon({
@@ -90,7 +84,7 @@ function deactivate(tabId) {
       '32': 'data/icons/32.png',
       '64': 'data/icons/64.png'
     }
-  });
+  }, () => chrome.runtime.lastError);
 }
 
 function search(url, callback) {

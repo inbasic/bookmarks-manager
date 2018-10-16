@@ -20,16 +20,14 @@ document.addEventListener('click', e => {
   else if (cmd === 'delete') {
     const ids = tree.jstree('get_selected');
     const nodes = ids.map(id => tree.jstree('get_node', id));
-    console.log(nodes);
     notify.confirm(`Are you sure you want to delete:
 
-  ${nodes.map((node, i) => (i + 1) + '. "' + (node.data.url || node.text) + '"').join('\n  ')}`, a => {
+    ${nodes.map((node, i) => (i + 1) + '. "' + (node.data.url || node.text) + '"').join('\n  ')}`, a => {
       if (a) {
         nodes.forEach(node => chrome.bookmarks[node.type === 'folder' ? 'removeTree' : 'remove'](node.id, () => {
           // jstree
           tree.jstree('select_node', node.parent);
           tree.jstree('delete_node', node.id);
-          console.log(node.id);
           // results
           const results = document.querySelector('#results tbody');
           const rtr = results.querySelector(`[data-id="${node.id}"]`);
@@ -87,6 +85,8 @@ document.addEventListener('click', e => {
             url
           }
         }, node.index, node => {
+          window.focus();
+          tree.focus();
           tree.jstree('deselect_all');
           tree.jstree('select_node', node.id);
         });
@@ -110,6 +110,32 @@ document.addEventListener('click', e => {
     chrome.tabs.create({
       url: 'chrome://bookmarks/'
     }, () => chrome.runtime.lastError && notify.warning(chrome.runtime.lastError.message));
+  }
+  else if (cmd === 'update-title') {
+    const ids = tree.jstree('get_selected');
+    const id = ids[0];
+    const node = tree.jstree('get_node', id);
+
+    chrome.runtime.sendMessage({
+      cmd,
+      url: node.data.url
+    }, response => {
+      if (response.error) {
+        chrome.runtime.sendMessage({
+          cmd: 'notify.inline',
+          msg: '"title" is up-do-date'
+        });
+      }
+      else {
+        const input = document.querySelector('#properties input[form=title]');
+        if (input.value !== response.title) {
+          input.value = response.title;
+          input.dispatchEvent(new Event('keyup', {
+            bubbles: true
+          }));
+        }
+      }
+    });
   }
 });
 // keyboard shortcut
@@ -137,39 +163,15 @@ document.addEventListener('keyup', e => {
       case 'D':
         document.querySelector('[data-cmd=create-folder]').click();
         break;
-      case 'Delete':
-        document.querySelector('[data-cmd=create-folder]').click();
+      case 'L': {
+        tree.activate();
         break;
+      }
       case 'E':
         window.dispatchEvent(new Event('properties:select-title'));
         break;
-      case 'L':
-        tree.focus();
-        break;
     }
-    e.stopPropagation();
-    e.preventDefault();
-  }
-});
-
-chrome.runtime.onMessage.addListener(request => {
-  if (request.cmd === 'title-info') {
-    const ids = tree.jstree('get_selected');
-    const id = ids[0];
-    if (request.id === id) {
-      const input = document.querySelector('#properties input[form=title]');
-      if (input.value !== request.title) {
-        input.value = request.title;
-        input.dispatchEvent(new Event('keyup', {
-          bubbles: true
-        }));
-      }
-      else {
-        chrome.runtime.sendMessage({
-          cmd: 'notify.inline',
-          msg: '"title" is up-do-date'
-        });
-      }
-    }
+    e.stopImmediatePropagation();
+    return false;
   }
 });

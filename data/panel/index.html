@@ -9,16 +9,18 @@
   </head>
   <body>
     <textarea style="display: none;"></textarea> <!-- for copy title and link to clipboard -->
-    <div id="search">
-      <input type="search" placeholder="For fuzzy search use 'fuzzy:'">
+    <form id="search">
+      <input type="search" placeholder="For fuzzy search use 'fuzzy:'" title="For fuzzy search use 'fuzzy:'&#013;For directory search use 'root:id query'&#013;&#013;To switch to the active element in the search result press Enter">
+      <input type="submit"/>
       <input type="button" data-cmd="open-in-tab" title="Open in a browser tab">
-    </div>
+    </form>
     <div id="tree"></div>
-    <div id="results">
+    <form id="results">
       <template>
         <tr>
           <td></td>
           <td></td>
+          <td><input type="radio" name="results"/></td>
         </tr>
       </template>
       <div>
@@ -30,8 +32,10 @@
           <thead>
             <tr>
               <th data-sort="td">
-                <span>Title</span>
-                <span data-id=count></span>
+                <div>
+                  <span data-id=count></span>
+                  <span>Title</span>
+                </div>
               </th>
               <th data-sort="td:last-child">
                 <div data-id="address">
@@ -49,11 +53,13 @@
           <colgroup>
             <col>
             <col>
+            <col width=0>
           </colgroup>
           <tbody></tbody>
         </table>
       </div>
-    </div>
+      <input type="submit"/>
+    </form>
     <div id="toolbar">
       <input type="button" value="Collapse" data-cmd="collapse" title="Collapse all nodes (Ctrl + Shift + C)">
       <div class="menu-button" data-id=tools>
@@ -86,7 +92,7 @@
           <col width="50">
         </colgroup>
         <tbody>
-          <tr>
+          <tr title="Ctrl + Shift + E">
             <td>Title</td>
             <td><input dir="auto" type="text" form="title" disabled="true"></td>
             <td><input data-cmd="change" type="submit" value="&#xe800;" disabled="true" form="title"></td>

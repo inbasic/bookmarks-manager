@@ -62,13 +62,13 @@ input:disabled {
 .d_folder,
 .folder {
   background-position: center !important;
-  background-size: 16px;
+  background-size: 20px;
 }
 .folder {
-  background-image: url(icons/folder.png) !important;
+  background-image: url(icons/folder.svg) !important;
 }
 .d_folder {
-  background-image: url(icons/d_folder.png) !important;
+  background-image: url(icons/d_folder.svg) !important;
 }
 .menu-button {
   position: relative;
@@ -135,6 +135,9 @@ input:disabled {
   padding: 10px;
   border-bottom: solid 1px #b7b7b7;
 }
+#search input[type=submit] {
+  display: none;
+}
 #search input[type=search] {
   flex: 1;
   height: 26px;
@@ -158,6 +161,19 @@ input:disabled {
   white-space: nowrap;
   display: none;
   flex-direction: column;
+}
+
+#results [data-id=count] {
+  background-color: #8080ea;
+  color: #fff;
+  float: right;
+  margin-right: 5px;
+  padding: 1px 3px;
+  font-size: 80%;
+  border-radius: 2px;
+}
+#results [data-id=count]:empty {
+  display: none;
 }
 
 #results [data-id=address] {
@@ -220,8 +236,17 @@ input:disabled {
   background-color: #f4f3f4;
 }
 #results tbody tr.selected {
+  background-color: #ccc;
+}
+
+#results:active tr.selected,
+#results:focus-within tr.selected {
   background-color: #b6e8ff;
 }
+#results input[type=submit] {
+  display: none;
+}
+
 #results td {
   overflow: hidden;
   text-overflow: ellipsis;

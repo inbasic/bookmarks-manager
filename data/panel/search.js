@@ -8,10 +8,10 @@
  * GitHub: https://github.com/inbasic/bookmarks-manager/
 */
 
-/* globals Fuse, utils */
+/* globals Fuse, utils, tree */
 'use strict';
 
-(function(search, results, count, tbody, trC, close, validate) {
+(function(search, searchForm, results, count, tbody, trC, close, validate) {
   // should the search box get the focus
   if(localStorage.getItem('searchfocus') === 'true') {
     document.addEventListener('DOMContentLoaded', () => search.focus());
@@ -132,14 +132,38 @@
         return (results = []) => {
           if (i === index) {
             results.forEach(add);
-            count.textContent = ` (${results.length})`;
+            count.textContent = results.length || '';
+            const tr = document.querySelector('#results tbody tr');
+            // select the first child
+            if (tr) {
+              tr.classList.add('selected');
+              tr.querySelector('input').checked = true;
+            }
           }
         };
       })(index);
 
       if (value.startsWith('root:')) {
-        const id = value.replace(/root:\s*/, '');
-        chrome.bookmarks.getChildren(id, next);
+        const id = value.replace(/root:/, '').split(' ')[0];
+        const term = value.replace(/root:[^ ]+/, '').trim();
+        const nodes = [];
+        const search = id => new Promise(resolve => chrome.bookmarks.getChildren(id, async nds => {
+          nodes.push(...nds.filter(n => n.url));
+          await Promise.all(nds.filter(n => !n.url).map(n => search(n.id)));
+          resolve();
+        }));
+        if (id) {
+          search(id).then(() => {
+            if (term) {
+              next(nodes.filter(({url, title}) => {
+                return title.toLowerCase().indexOf(term) !== -1 || url.toLowerCase().indexOf(term) !== -1;
+              }));
+            }
+            else {
+              next(nodes);
+            }
+          });
+        }
       }
       else if (value.startsWith('id:')) {
         const ids = value.replace(/id:\s*/, '').split(/,\s*/);
@@ -163,12 +187,21 @@
   function closePanel() {
     tbody.textContent = '';
     search.value = '';
+    perform.value = '';
+    count.textContent = '';
     search.dispatchEvent(new Event('keyup'));
     closed = true;
   }
 
   search.addEventListener('keyup', perform);
   search.addEventListener('search', perform);
+  searchForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const tr = tbody.querySelector('.selected');
+    if (tr) {
+      tr.click();
+    }
+  });
 
   results.addEventListener('click', e => {
     const target = e.target;
@@ -187,6 +220,7 @@
             }
           }));
         });
+        tr.querySelector('input').focus();
       }
     }
     const sort = target.dataset.sort;
@@ -201,13 +235,20 @@
       target.dataset.increase = target.dataset.increase !== 'true';
     }
   });
-  tbody.addEventListener('dblclick', e => {
-    const target = e.target;
-    const tr = target.closest('tr');
-    if (tr) {
-      closePanel();
-    }
-  });
+  {
+    const callback = () => {
+      const tr = tbody.querySelector('.selected');
+      if (tr) {
+        closePanel();
+      }
+      tree.focus();
+    };
+    tbody.addEventListener('dblclick', callback);
+    results.addEventListener('submit', e => {
+      e.preventDefault();
+      callback();
+    });
+  }
 
   close.addEventListener('click', closePanel);
 
@@ -245,7 +286,8 @@
     validate.disabled = false;
   });
 })(
-  document.querySelector('#search input'),
+  document.querySelector('#search input[type=search]'),
+  document.getElementById('search'),
   document.querySelector('#results'),
   document.querySelector('#results [data-id=count]'),
   document.querySelector('#results tbody'),
