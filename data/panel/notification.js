@@ -12,19 +12,40 @@
 
 var notify = (function() {
   const div = document.getElementById('notification');
+
   const p = div.querySelector('span');
-  let callback = function() {};
+  let callback;
 
   div.querySelector('[data-cmd=yes]').addEventListener('click', () => {
     div.style.display = 'none';
-    callback(true);
+    if (callback) {
+      callback(true);
+      callback = '';
+    }
   });
   div.querySelector('[data-cmd=no]').addEventListener('click', () => {
     div.style.display = 'none';
-    callback(false);
+    if (callback) {
+      callback(false);
+      callback = '';
+    }
   });
   div.querySelector('[data-cmd=ok]').addEventListener('click', () => {
     div.style.display = 'none';
+  });
+
+  document.addEventListener('keyup', e => {
+    if ((e.code === 'KeyN') && callback) {
+      div.querySelector('[data-cmd=no]').dispatchEvent(new Event('click'));
+    }
+    else if (e.code === 'KeyY' && callback) {
+      div.querySelector('[data-cmd=yes]').dispatchEvent(new Event('click'));
+    }
+
+    if (e.code === 'Escape' && callback) {
+      div.style.display = 'none';
+      callback = '';
+    }
   });
 
   const ts = document.querySelector('#toolbar span');

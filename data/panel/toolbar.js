@@ -22,7 +22,7 @@ document.addEventListener('click', e => {
     const nodes = ids.map(id => tree.jstree('get_node', id));
     notify.confirm(`Are you sure you want to delete:
 
-    ${nodes.map((node, i) => (i + 1) + '. "' + (node.data.url || node.text) + '"').join('\n  ')}`, a => {
+  ${nodes.map((node, i) => (i + 1) + '. ' + (node.data.url || node.text)).join('\n  ')}`, a => {
       if (a) {
         nodes.forEach(node => chrome.bookmarks[node.type === 'folder' ? 'removeTree' : 'remove'](node.id, () => {
           // jstree
@@ -140,7 +140,7 @@ document.addEventListener('click', e => {
 });
 // keyboard shortcut
 document.addEventListener('keyup', e => {
-  if (e.ctrlKey && e.shiftKey) {
+  if ((e.ctrlKey && e.shiftKey) || e.key === 'Delete') {
     switch(e.key) {
       case 'C':
         document.querySelector('[data-cmd=collapse]').click();
@@ -163,12 +163,14 @@ document.addEventListener('keyup', e => {
       case 'D':
         document.querySelector('[data-cmd=create-folder]').click();
         break;
-      case 'L': {
-        tree.activate();
-        break;
-      }
       case 'E':
         window.dispatchEvent(new Event('properties:select-title'));
+        break;
+      case 'L':
+        tree.activate();
+        break;
+      case 'Delete':
+        document.querySelector('#toolbar [data-cmd="delete"]').click();
         break;
     }
     e.stopImmediatePropagation();

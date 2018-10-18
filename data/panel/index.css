@@ -22,9 +22,11 @@ table {
   width: 100%;
   border-collapse: collapse;
 }
+button,
 input {
   outline: none;
 }
+button,
 input[type=submit],
 input[type=button],
 input[type=search],
@@ -45,17 +47,21 @@ input[type=text]:focus {
   border-color: #419bf9;
   box-shadow: 0 0 1px #8ab8e7;
 }
+button,
 input[type=submit],
 input[type=button] {
   cursor: pointer;
   min-height: 22px;
 }
+button,
 input[type=button] {
   margin: 0 2px;
 }
+button:active,
 input[type=button]:active {
   opacity: 0.5;
 }
+button:disabled,
 input:disabled {
   opacity: 0.3 !important;
 }
@@ -141,7 +147,8 @@ input:disabled {
 #search input[type=search] {
   flex: 1;
   height: 26px;
-}#search input[type=button] {
+}
+#search input[type=button] {
   width: 26px;
   height: 26px;
   background: #fff url('icons/window.svg') center center no-repeat;
@@ -329,6 +336,7 @@ input:disabled {
   background-color: #fff;
   padding: 10px;
   width: 80%;
+  max-width: 500px;
   min-height: 90px;
   max-height: 80vh;
   display: flex;
@@ -356,10 +364,15 @@ input:disabled {
 #notification[data-type=warning] [data-cmd=no] {
   display: none;
 }
-#notification input {
+#notification button {
   min-width: 90px;
-  background-color: rgba(234, 234, 234, 0.25);
-  color: #000;
+  background-color: #3367d6;
+  color: #fff;
+  -webkit-appearance: none;
+  border: none;
+  border-radius: 3px;
+  font-size: 12px;
+  text-align: center;
 }
 /* inline notification */
 #toolbar>span {

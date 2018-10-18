@@ -219,7 +219,7 @@ tree.jstree({
       },
       'Validate Bookmark': {
         'separator_before': true,
-        'label': 'Validate Bookmarks',
+        'label': 'Search or Validate Bookmarks',
         'action': () => {
           const input = document.querySelector('#search input');
           const ids = tree.jstree('get_selected');
@@ -228,7 +228,7 @@ tree.jstree({
           }
           else {
             const node = tree.jstree('get_node', ids[0]);
-            input.value = (node.data.url, node.data.url ? 'id:' : 'root:') + ids.join(',');
+            input.value = (node.data.url, node.data.url ? 'id:' : 'root:') + ids.join(',') + ' ';
           }
           input.dispatchEvent(new Event('search'));
           input.focus();

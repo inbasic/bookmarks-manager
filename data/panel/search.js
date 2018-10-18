@@ -129,10 +129,10 @@
       tbody.textContent = '';
 
       const next = (i => {
-        return (results = []) => {
+        return (results = [], total) => {
           if (i === index) {
             results.forEach(add);
-            count.textContent = results.length || '';
+            count.textContent = (results.length || '') + (total ? '/' + total : '');
             const tr = document.querySelector('#results tbody tr');
             // select the first child
             if (tr) {
@@ -145,7 +145,7 @@
 
       if (value.startsWith('root:')) {
         const id = value.replace(/root:/, '').split(' ')[0];
-        const term = value.replace(/root:[^ ]+/, '').trim();
+        const term = value.replace(/root:[^ ]+/, '').toLowerCase().trim();
         const nodes = [];
         const search = id => new Promise(resolve => chrome.bookmarks.getChildren(id, async nds => {
           nodes.push(...nds.filter(n => n.url));
@@ -156,8 +156,12 @@
           search(id).then(() => {
             if (term) {
               next(nodes.filter(({url, title}) => {
-                return title.toLowerCase().indexOf(term) !== -1 || url.toLowerCase().indexOf(term) !== -1;
-              }));
+                title = title.toLowerCase();
+                url = url.toLowerCase();
+                // split and match by keys
+                const keys = term.split(/\s+/);
+                return keys.filter(key => title.indexOf(key) !== -1 || url.indexOf(key) !== -1).length === keys.length;
+              }), nodes.length);
             }
             else {
               next(nodes);
