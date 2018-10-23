@@ -35,10 +35,12 @@ tree.activate = () => {
   try {
     const ids = tree.jstree('get_selected');
     const id = ids[0];
-    tree.element(id).focus();
+    tree.jstree('hover_node', tree.element(id));
   }
-  catch(e) {}
-  tree.focus();
+  catch(e) {
+    console.log(e);
+  }
+  window.setTimeout(() => tree.focus(), 100);
 };
 
 tree.string.escape = str => str
