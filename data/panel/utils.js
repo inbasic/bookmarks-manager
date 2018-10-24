@@ -28,7 +28,12 @@ utils.favicon = (() => {
       return url;
     }
     if (isFirefox) {
-      return 'http://www.google.com/s2/favicons?domain_url=' + url;
+      if (localStorage.getItem('resolve') === 'true') {
+        return 'http://www.google.com/s2/favicons?domain_url=' + url;
+      }
+      else {
+        return '/data/panel/icons/page.png';
+      }
     }
     return 'chrome://favicon/' + url;
   };
