@@ -38,3 +38,18 @@ utils.favicon = (() => {
     return 'chrome://favicon/' + url;
   };
 })();
+// Firefox only user consent
+if (
+  navigator.userAgent.indexOf('Firefox') !== -1 &&
+  localStorage.getItem('offer-favicon') !== 'false' &&
+  localStorage.getItem('resolve') !== 'true'
+) {
+  document.body.dataset.favicon = true;
+  document.querySelector('.favicon input[type=button]').addEventListener('click', () => {
+    localStorage.setItem('offer-favicon', false);
+    document.body.dataset.favicon = false;
+  });
+  document.querySelector('.favicon input[type=checkbox]').addEventListener('change', e => {
+    localStorage.setItem('resolve', e.target.checked);
+  });
+}

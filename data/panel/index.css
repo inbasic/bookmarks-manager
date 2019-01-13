@@ -65,6 +65,25 @@ button:disabled,
 input:disabled {
   opacity: 0.3 !important;
 }
+#tree li.separator {
+  min-height: unset !important;
+  height: 15px !important;
+  position: relative;
+  padding-left: 12px;
+  pointer-events: none;
+}
+#tree li.separator::before {
+  content: '';
+  border-bottom: dotted 1px rgba(0, 0, 0, 1);
+  position: absolute;
+  height: 50%;
+  width: calc(100% - 50px);
+  display: block;
+  box-sizing: border-box;
+}
+#tree li.separator * {
+  opacity: 0;
+}
 .d_folder,
 .folder {
   background-position: center !important;
@@ -396,4 +415,21 @@ input:disabled {
   [data-cmd="bookmark-manager"] {
     display: none;
   }
+}
+.favicon {
+  background-color: lightyellow;
+  padding: 10px 30px 10px 10px;
+  position: relative;
+}
+body:not([data-favicon=true]) .favicon {
+  display: none;
+}
+.favicon input[type=button] {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  margin: -10px -10px 0 0;
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }

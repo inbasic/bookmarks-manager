@@ -37,7 +37,7 @@ tree.activate = () => {
     const id = ids[0];
     tree.jstree('hover_node', tree.element(id));
   }
-  catch(e) {
+  catch (e) {
     console.log(e);
   }
   window.setTimeout(() => tree.focus(), 100);
@@ -70,7 +70,12 @@ tree.jstree({
     }
   },
   'plugins': tree.plugins,
-  // 'conditionalselect': node => node.parent !== '#',
+  'conditionalselect': node => {
+    if (node.data && node.data.type === 'separator') {
+      return false;
+    }
+    return true;
+  },
   'core': {
     // Content Security Policy: The page’s settings blocked the loading of a resource at blob:moz-extension://
     'worker': !/Firefox/.test(navigator.userAgent),
@@ -150,16 +155,17 @@ tree.jstree({
             const feed = tree.isFeed(node.url);
             const children = !node.url || feed === true;
             const drag = node.parentId !== '0' && node.parentId !== 'root________';
-            return {
-              text: tree.string.escape(node.title),
+            const rtn = {
+              text: node.type === 'separator' ? '..............' : tree.string.escape(node.title),
               id: node.id,
-              type: children ? (drag ? 'folder' : 'd_folder') : 'file',
+              type: children ? (drag ? 'folder' : 'd_folder') : (node.type === 'separator' ? 'separator' : 'file'),
               icon: children ? null : utils.favicon(node.url),
               children,
               a_attr: { // open with middle-click
                 href: node.url || '#'
               },
               data: {
+                type: node.type,
                 dateGroupModified: node.dateGroupModified,
                 dateAdded: node.dateAdded,
                 url: node.url || '',
@@ -170,6 +176,12 @@ tree.jstree({
                 hidden: node.url && node.url.startsWith('place:')
               }
             };
+            if (node.type === 'separator') {
+              rtn.li_attr = {
+                'class': 'separator'
+              };
+            }
+            return rtn;
           }));
         });
       }
