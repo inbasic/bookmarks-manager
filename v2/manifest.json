@@ -3,7 +3,7 @@
   "short_name": "bookmark-manager",
   "description": "An elegant bookmark manager with fuzzy search and more",
   "author": "InBasic",
-  "version": "0.2.6",
+  "version": "0.2.6.1",
   "manifest_version": 2,
   "permissions": [
     "storage",
@@ -70,7 +70,7 @@
   "applications": {
     "gecko": {
       "id": "{beb1b1c0-32b9-47d8-bbd1-f65bed4e7c22}",
-      "strict_min_version": "52.0"
+      "strict_min_version": "57.0"
     }
   }
 }

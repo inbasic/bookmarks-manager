@@ -1,0 +1,41 @@
+{
+  "name": "Bookmark Manager and Viewer",
+  "short_name": "bookmark-manager",
+  "description": "An elegant bookmark manager with fuzzy search and more",
+  "version": "0.3.0",
+  "manifest_version": 3,
+  "permissions": [
+    "storage",
+    "activeTab",
+    "bookmarks",
+    "favicon",
+    "notifications",
+    "contextMenus",
+    "declarativeContent"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "action": {
+    "default_popup": "data/panel/index.html"
+  },
+  "sidebar_action": {
+    "default_panel": "data/panel/index.html?in=sidebar"
+  },
+  "homepage_url": "http://add0n.com/bookmarks-manager.html",
+  "icons": {
+    "16": "data/icons/16.png",
+    "32": "data/icons/32.png",
+    "48": "data/icons/48.png",
+    "128": "data/icons/128.png",
+    "256": "data/icons/256.png",
+    "512": "data/icons/512.png"
+  },
+  "options_ui": {
+    "page": "/data/options/index.html",
+    "open_in_tab": true
+  }
+}

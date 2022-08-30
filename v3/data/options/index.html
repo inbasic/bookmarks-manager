@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Options Page :: Bookmark Manager and Viewer</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+
+<body>
+  <div class="two">
+    <label for="width">Panel width (in pixels) (min: 300px):</label>
+    <input id="width" type="number" min="300">
+    <label for="height">Panel height (in pixels) (min: 400px):</label>
+    <input id="height" type="number" min="400">
+    <label for="sort"><a target="_blank" data-href="faq15">Sort</a> bookmark tree</label>
+    <input id="sort" type="checkbox">
+    <label for="mode">Open the manager window in:<sup>1</sup>:</label>
+    <select id="mode">
+      <option value="popup">Popup</option>
+      <option value="tab">New Tab</option>
+    </select>
+    <label>Bookmark from <a target="_blank" data-href="faq16">right-click context menu</a> over links:</label>
+    <input type="text" id="context" placeholder="Folder ID">
+    <label for="searchfocus">Set focus to <a target="_blank" data-href="faq17">the search box</a> on open:</label>
+    <input id="searchfocus" type="checkbox">
+    <label for="resolve">Resolve icons (Firefox only)<sup>2</sup>:</label>
+    <input id="resolve" type="checkbox">
+  </div>
+
+  <div class="one">
+    <span>Custom styling (Read <a data-href="faq14" target="_blank">FAQs</a> page for more info)</span>
+    <textarea id="css" rows="5"></textarea>
+  </div>
+
+  <p>
+    Rate "<b><a id="rate" href="https://chrome.google.com/webstore/detail/bookmark-manager-and-view/mnhojcjhcilkgkmijhphlbmghmmdhlfg/reviews">Bookmark Manager and Viewer</a></b>"
+  </p>
+  <div id="explore" data-inc=50></div>
+  <p>
+    <button id="support">Support Development</button>
+    <button id="reset">Reset</button> - <button id="save">Save Options</button>
+    <span id="status"></span>
+  </p>
+  <hr>
+  <p class="note">
+    1. In Firefox and Opera, you can also open the manager window in the browser sidebar area too
+    <br>
+    2. In Firefox, there is no built-in service for resolving domain's icon. If this item is checked, the extension uses http://www.google.com/s2/favicons service to resolve icons.
+  </p>
+  <script src="index.js"></script>
+  <script async src="matched.js"></script>
+</body>
+</html>
