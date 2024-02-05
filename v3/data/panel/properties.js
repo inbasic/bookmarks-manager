@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Home: http://add0n.com/bookmarks-manager.html
+ * Home: https://webextension.org/listing/bookmarks-manager.html
  * GitHub: https://github.com/inbasic/bookmarks-manager/
 */
 
@@ -53,12 +53,12 @@ properties.addEventListener('submit', e => {
   });
 });
 
-window.addEventListener('properties:select-title', () => {
+addEventListener('properties:select-title', () => {
   const title = properties.querySelector('tr:nth-child(1) input');
   title.focus();
   title.select();
 });
-window.addEventListener('properties:select-link', () => {
+addEventListener('properties:select-link', () => {
   const url = properties.querySelector('tr:nth-child(2) input');
   url.focus();
   url.select();

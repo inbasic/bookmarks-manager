@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Home: http://add0n.com/bookmarks-manager.html
+ * Home: https://webextension.org/listing/bookmarks-manager.html
  * GitHub: https://github.com/inbasic/bookmarks-manager/
 */
 
@@ -46,9 +46,14 @@ document.addEventListener('click', e => {
   }
   else if (cmd === 'create-folder' || cmd === 'create-bookmark' || cmd === 'create-from-tab') {
     const ids = tree.jstree('get_selected');
+
+    if (ids.length === 0) {
+      return notify.inline('Please select a node first');
+    }
     const id = ids[0];
     const node = tree.jstree('get_node', id);
     const parentId = node.type === 'folder' ? node.id : node.parent;
+
     const prp = {
       parentId
     };

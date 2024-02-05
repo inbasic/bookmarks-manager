@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Home: http://add0n.com/bookmarks-manager.html
+ * Home: https://webextension.org/listing/bookmarks-manager.html
  * GitHub: https://github.com/inbasic/bookmarks-manager/
 */
 
@@ -388,7 +388,7 @@ tree.on('keydown.tree', e => {
   }
 });
 
-window.addEventListener('tree:open-array', e => {
+addEventListener('tree:open-array', e => {
   const arr = e.detail.nodes;
   tree.jstree('deselect_all');
   tree.jstree('close_all');

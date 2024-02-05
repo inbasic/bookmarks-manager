@@ -348,7 +348,7 @@ input:disabled {
   right: 2px;
   padding: 10px;
   max-width: calc(100vw - 80px);
-  font-size: 120%;
+  font-size: 100%;
 }
 #notification {
   position: absolute;
@@ -406,7 +406,7 @@ input:disabled {
 #toolbar > span {
   position: fixed;
   background-color: #fdf8e4;
-  color: #b79148;
+  color: #4d3d1e;
   border: solid 1px #b79148;
   z-index: 10;
   top: 5px;

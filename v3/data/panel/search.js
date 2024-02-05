@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Home: http://add0n.com/bookmarks-manager.html
+ * Home: https://webextension.org/listing/bookmarks-manager.html
  * GitHub: https://github.com/inbasic/bookmarks-manager/
 */
 
@@ -21,7 +21,7 @@
   let fuse;
   let closed = false;
   // focus searchbox on Ctrl + F
-  window.addEventListener('keydown', e => {
+  addEventListener('keydown', e => {
     if ((e.metaKey && e.keyCode === 70) || (e.ctrlKey && e.keyCode === 70)) {
       e.preventDefault();
       e.stopPropagation();
@@ -29,7 +29,7 @@
     }
   });
   // reset fuse on edit
-  window.addEventListener('search:reset-fuse', () => fuse = null);
+  addEventListener('search:reset-fuse', () => fuse = null);
   function prepare() {
     if (useNative) {
       return Promise.resolve();
