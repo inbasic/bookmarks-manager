@@ -35,7 +35,7 @@ utils.favicon = (() => {
         return '/data/panel/icons/page.png';
       }
     }
-    return chrome.runtime.getURL('/_favicon?') + 'pageUrl=' + encodeURIComponent(url) + '&size=32';
+    return chrome.runtime.getURL('/_favicon?') + 'pageUrl=' + encodeURIComponent(url) + '&size=48';
   };
 })();
 // Firefox only user consent

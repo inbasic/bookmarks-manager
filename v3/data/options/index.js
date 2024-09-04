@@ -17,6 +17,7 @@ function restore() {
   document.getElementById('sort').checked = localStorage.getItem('sort') === 'true';
   document.getElementById('searchfocus').checked = localStorage.getItem('searchfocus') === 'true';
   document.getElementById('resolve').checked = localStorage.getItem('resolve') === 'true';
+  document.getElementById('theme-source').value = localStorage.getItem('theme-source') || 'auto';
 
   chrome.storage.local.get({
     width: 500,
@@ -36,6 +37,12 @@ function save() {
   localStorage.setItem('sort', document.getElementById('sort').checked);
   localStorage.setItem('searchfocus', document.getElementById('searchfocus').checked);
   localStorage.setItem('resolve', document.getElementById('resolve').checked);
+  localStorage.setItem('theme-source', document.getElementById('theme-source').value);
+
+  chrome.runtime.sendMessage({
+    cmd: 'theme-source'
+  });
+
   const prefs = {
     width: Math.max(300, document.getElementById('width').value),
     height: Math.max(400, document.getElementById('height').value),

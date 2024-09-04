@@ -403,3 +403,34 @@ addEventListener('tree:open-array', e => {
     });
   });
 });
+
+// theme
+{
+  const dark = () => {
+    tree.jstree('set_theme', 'default-dark');
+    document.documentElement.classList.add('dark');
+  };
+  const light = () => {
+    tree.jstree('set_theme', 'default');
+    document.documentElement.classList.remove('dark');
+  };
+
+  const run = () => {
+    const ts = localStorage.getItem('theme-source') || 'auto';
+    if (ts === 'auto') {
+      if (matchMedia('(prefers-color-scheme: dark)').matches) {
+        return dark();
+      }
+    }
+    else if (ts === 'dark') {
+      return dark();
+    }
+
+    light();
+  };
+  run();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    run();
+  });
+  chrome.runtime.onMessage.addListener(request => request.cmd === 'theme-source' && run());
+}
