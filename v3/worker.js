@@ -15,7 +15,7 @@ const notify = message => chrome.notifications.create({
   title: chrome.runtime.getManifest().name,
   message,
   type: 'basic'
-});
+}, id => setTimeout(() => chrome.notifications.clear(id), 5000));
 
 async function image(url) {
   const img = await createImageBitmap(await (await fetch(url)).blob());
@@ -27,43 +27,59 @@ async function image(url) {
   return ctx.getImageData(0, 0, w, h);
 }
 
-const monitor = () => chrome.declarativeContent.onPageChanged.removeRules(undefined, async () => {
-  const action = new chrome.declarativeContent.SetIcon({
-    imageData: {
-      16: await image('/data/icons/bookmarked/16.png'),
-      32: await image('/data/icons/bookmarked/32.png')
-    }
+const monitor = () => {
+  if (monitor.done) {
+    return;
+  }
+  monitor.done = true;
+
+  chrome.declarativeContent.onPageChanged.removeRules(undefined, async () => {
+    const action = new chrome.declarativeContent.SetIcon({
+      imageData: {
+        16: await image('/data/icons/bookmarked/16.png'),
+        32: await image('/data/icons/bookmarked/32.png')
+      }
+    });
+    chrome.declarativeContent.onPageChanged.addRules([{
+      conditions: [new chrome.declarativeContent.PageStateMatcher({
+        isBookmarked: true
+      })],
+      actions: [action]
+    }]);
   });
-  chrome.declarativeContent.onPageChanged.addRules([{
-    conditions: [new chrome.declarativeContent.PageStateMatcher({
-      isBookmarked: true
-    })],
-    actions: [action]
-  }]);
-});
-chrome.runtime.onInstalled.addListener(monitor);
-chrome.runtime.onStartup.addListener(monitor);
+};
+if (chrome.declarativeContent) {
+  chrome.runtime.onInstalled.addListener(monitor);
+  chrome.runtime.onStartup.addListener(monitor);
+}
 
 // context menu
 {
-  const once = () => chrome.storage.local.get({
-    context: ''
-  }, prefs => {
-    chrome.contextMenus.create({
-      id: 'bookmark-link',
-      title: 'Bookmark this Link',
-      contexts: ['link'],
-      targetUrlPatterns: ['*://*/*'],
-      visible: prefs.context !== ''
-    }, () => chrome.runtime.lastError);
-    chrome.contextMenus.create({
-      id: 'bookmark-page',
-      title: 'Bookmark this Page',
-      contexts: ['page'],
-      targetUrlPatterns: ['*://*/*'],
-      visible: prefs.context !== ''
-    }, () => chrome.runtime.lastError);
-  });
+  const once = () => {
+    if (once.done) {
+      return;
+    }
+    once.done = true;
+
+    chrome.storage.local.get({
+      context: ''
+    }, prefs => {
+      chrome.contextMenus.create({
+        id: 'bookmark-link',
+        title: 'Bookmark this Link',
+        contexts: ['link'],
+        targetUrlPatterns: ['*://*/*'],
+        visible: prefs.context !== ''
+      }, () => chrome.runtime.lastError);
+      chrome.contextMenus.create({
+        id: 'bookmark-page',
+        title: 'Bookmark this Page',
+        contexts: ['page'],
+        targetUrlPatterns: ['*://*/*'],
+        visible: prefs.context !== ''
+      }, () => chrome.runtime.lastError);
+    });
+  };
   chrome.runtime.onInstalled.addListener(once);
   chrome.runtime.onStartup.addListener(once);
 
@@ -130,8 +146,7 @@ chrome.action.onClicked.addListener(() => chrome.tabs.create({
 {
   const {management, runtime: {onInstalled, setUninstallURL, getManifest}, storage, tabs} = chrome;
   if (navigator.webdriver !== true) {
-    const page = getManifest().homepage_url;
-    const {name, version} = getManifest();
+    const {homepage_url: page, name, version} = getManifest();
     onInstalled.addListener(({reason, previousVersion}) => {
       management.getSelf(({installType}) => installType === 'normal' && storage.local.get({
         'faqs': true,
@@ -140,7 +155,7 @@ chrome.action.onClicked.addListener(() => chrome.tabs.create({
         if (reason === 'install' || (prefs.faqs && reason === 'update')) {
           const doUpdate = (Date.now() - prefs['last-update']) / 1000 / 60 / 60 / 24 > 45;
           if (doUpdate && previousVersion !== version) {
-            tabs.query({active: true, currentWindow: true}, tbs => tabs.create({
+            tabs.query({active: true, lastFocusedWindow: true}, tbs => tabs.create({
               url: page + '?version=' + version + (previousVersion ? '&p=' + previousVersion : '') + '&type=' + reason,
               active: reason === 'install',
               ...(tbs && tbs.length && {index: tbs[0].index + 1})

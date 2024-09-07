@@ -1,143 +1,153 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" href="./jstree/themes/default/style.css"/>
-    <link rel="stylesheet" href="./jstree/themes/default-dark/style.css"/>
-    <link rel="stylesheet" href="./font/fontello.css">
-    <link rel="stylesheet" href="./index.css">
-    <script src="body.js"></script>
-    <title>Bookmark Manager and Viewer</title>
-  </head>
-  <body>
-    <div class="favicon">
-      <label>To show bookmark icons, this extension uses <code>google.com/s2</code> service. Check this box to enable this service <input type="checkbox"/></label>
-      <br/>
-      <br/>
-      You can disable this service from the options page.
-      <input type="button" value="×"/>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="jstree/themes/default/style.css"/>
+  <link rel="stylesheet" href="jstree/themes/default-dark/style.css"/>
+  <link rel="stylesheet" href="font/fontello.css">
+  <link rel="stylesheet" href="index.css">
+  <script src="body.js"></script>
+  <title>Bookmark Manager and Viewer</title>
+</head>
+<body>
+  <div class="favicon">
+    <input type="checkbox"/>
+    <div>
+      <p>To show bookmark icons, this extension uses <code>google.com/s2</code> service. Check this box to enable this service </p>
+      <p>You can disable this service from the options page.</p>
     </div>
-    <textarea style="display: none;"></textarea> <!-- for copy title and link to clipboard -->
-    <form id="search">
-      <input type="search" placeholder="For fuzzy search use 'fuzzy:'" title="For fuzzy search use 'fuzzy:'&#013;For directory search use 'root:id query'&#013;&#013;To switch to the active element in the search result press Enter">
-      <input type="submit"/>
-      <input type="button" data-cmd="open-in-tab" title="Open in a browser tab">
-    </form>
-    <div id="tree"></div>
-    <form id="results">
-      <template>
-        <tr>
-          <td></td>
-          <td></td>
-          <td><input type="radio" name="results"/></td>
-        </tr>
-      </template>
-      <div>
-        <table>
-          <colgroup>
-            <col>
-            <col>
-          </colgroup>
-          <thead>
-            <tr>
-              <th data-sort="td">
-                <div>
-                  <span data-id=count></span>
-                  <span>Title</span>
-                </div>
-              </th>
-              <th data-sort="td:last-child">
-                <div data-id="address">
-                  <span>Address</span>
-                  <input type="button" value="Validate" data-cmd="validate-list">
-                  <input type="button" value="✕" data-cmd="close">
-                </div>
-              </th>
-            </tr>
-          </thead>
-        </table>
-      </div>
-      <div style="overflow-x: hidden; overflow-y: auto; flex: 1">
-        <table>
-          <colgroup>
-            <col>
-            <col>
-            <col width=0>
-          </colgroup>
-          <tbody></tbody>
-        </table>
-      </div>
-      <input type="submit"/>
-    </form>
-    <div id="toolbar">
-      <input type="button" value="Collapse" data-cmd="collapse" title="Collapse all nodes (Ctrl + Shift + C)">
-      <div class="menu-button" data-id=tools>
-        <input type="button" value="Tools">
-        <ul>
-          <li data-cmd="update-title" title="Ctrl + Shift + U">Update bookmark's title</li>
-          <li data-cmd="open-options" title="Ctrl + Shift + O" class="separator">Open options page</li>
-          <li data-cmd="reset-root" title="Ctrl + Shift + R">Reset root</li>
-        </ul>
-      </div>
-      <div class="menu-button">
-        <input type="button" value="Bookmark">
-        <ul>
-          <li data-cmd="create-bookmark" title="Ctrl +Shift + B">Create new Bookmark</li>
-          <li data-cmd="create-from-tab" title="Ctrl + Shift + T">Bookmark this Tab</li>
-          <li data-cmd="create-folder" title="Ctrl + Shift + D">Create new Directory</li>
-          <li data-cmd="delete" title="Ctrl + Shift + Delete" class="separator" style="display: none;">Delete this bookmark</li>
-        </ul>
-      </div>
-      <span></span>
-      <input type="button" value="Bookmark Manager" data-cmd="bookmark-manager">
-    </div>
-    <div id="properties">
-      <form id="title" autocomplete="off"></form>
-      <form id="url" autocomplete="off"></form>
+    <input type="button" value="×"/>
+  </div>
+  <textarea style="display: none;"></textarea> <!-- for copy title and link to clipboard -->
+  <form id="search">
+    <input type="search" placeholder="For fuzzy search use 'fuzzy:'" title="For fuzzy search use 'fuzzy:'
+For directory search use 'root:id query'
+
+To switch to the active element in the search result press Enter
+To select this box use Ctrl + F">
+    <input type="submit"/>
+    <input type="button" data-cmd="open-in-tab" title="Open in a browser tab">
+  </form>
+  <div id="tree" title="Use Ctrl + Shift + L to focus tree panel.
+Use Arrow Up and Down to navigate nodes.
+Use Alt + Enter to select the new node.
+Use Shift + Enter or Ctrl + Enter for range selection.
+Use Enter to open the selected node."></div>
+  <form id="results">
+    <template>
+      <tr>
+        <td></td>
+        <td></td>
+        <td><input type="radio" name="results"/></td>
+      </tr>
+    </template>
+    <div>
       <table>
         <colgroup>
-          <col width="60">
           <col>
-          <col width="50">
+          <col>
         </colgroup>
-        <tbody>
-          <tr title="Ctrl + Shift + E">
-            <td>Title</td>
-            <td><input dir="auto" type="text" form="title" disabled="true"></td>
-            <td><input data-cmd="change" type="submit" value="&#xe800;" disabled="true" form="title"></td>
-          </tr>
+        <thead>
           <tr>
-            <form>
-              <td>Address</td>
-              <td><input type="text" form="url" disabled="true"></td>
-              <td><input data-cmd="change" type="submit" value="&#xe800;" disabled="true" form="url"></td>
-            </form>
+            <th data-sort="td">
+              <div>
+                <span data-id=count></span>
+                <span>Title</span>
+              </div>
+            </th>
+            <th data-sort="td:last-child">
+              <div data-id="address">
+                <span>Address</span>
+                <input type="button" value="Validate" data-cmd="validate-list">
+                <input type="button" value="✕" data-cmd="close">
+              </div>
+            </th>
           </tr>
-          <tr>
-            <td>Date</td>
-            <td colspan="2"><span></span></td>
-          </tr>
-        </tbody>
+        </thead>
       </table>
     </div>
-    <div id="notification">
+    <div style="overflow-x: hidden; overflow-y: auto; flex: 1">
+      <table>
+        <colgroup>
+          <col>
+          <col>
+          <col width=0>
+        </colgroup>
+        <tbody></tbody>
+      </table>
+    </div>
+    <input type="submit"/>
+  </form>
+  <div id="toolbar">
+    <input type="button" value="Collapse" data-cmd="collapse" title="Collapse all nodes (Ctrl + Shift + C)">
+    <div class="menu-button" data-id=tools>
+      <input type="button" value="Tools">
+      <ul>
+        <li data-cmd="update-title" title="Ctrl + Shift + U">Update bookmark's title</li>
+        <li data-cmd="open-options" title="Ctrl + Shift + O" class="separator">Open options page</li>
+        <li data-cmd="reset-root" title="Ctrl + Shift + R">Reset root</li>
+      </ul>
+    </div>
+    <div class="menu-button">
+      <input type="button" value="Bookmark">
+      <ul>
+        <li data-cmd="create-bookmark" title="Ctrl +Shift + B">Create new Bookmark</li>
+        <li data-cmd="create-from-tab" title="Ctrl + Shift + T">Bookmark this Tab</li>
+        <li data-cmd="create-folder" title="Ctrl + Shift + D">Create new Directory</li>
+        <li data-cmd="delete" title="Ctrl + Shift + Delete" class="separator" style="display: none;">Delete this bookmark</li>
+      </ul>
+    </div>
+    <span></span>
+    <input type="button" value="Bookmark Manager" data-cmd="bookmark-manager">
+  </div>
+  <div id="properties">
+    <form id="title" autocomplete="off"></form>
+    <form id="url" autocomplete="off"></form>
+    <table>
+      <colgroup>
+        <col width="60">
+        <col>
+        <col width="50">
+      </colgroup>
+      <tbody>
+        <tr title="Ctrl + Shift + E">
+          <td>Title</td>
+          <td><input dir="auto" type="text" form="title" disabled="true"></td>
+          <td><input data-cmd="change" type="submit" value="&#xe800;" disabled="true" form="title"></td>
+        </tr>
+        <tr>
+          <form>
+            <td>Address</td>
+            <td><input type="text" form="url" disabled="true"></td>
+            <td><input data-cmd="change" type="submit" value="&#xe800;" disabled="true" form="url"></td>
+          </form>
+        </tr>
+        <tr>
+          <td>Date</td>
+          <td colspan="2"><span></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="notification">
+    <div>
+      <span></span>
       <div>
-        <span></span>
-        <div>
-          <button data-cmd="no"><u>N</u>o</button>
-          <button data-cmd="yes"><u>Y</u>es</button>
-          <button data-cmd="ok"><u>O</u>K</button>
-        </div>
+        <button data-cmd="no"><u>N</u>o</button>
+        <button data-cmd="yes"><u>Y</u>es</button>
+        <button data-cmd="ok"><u>O</u>K</button>
       </div>
     </div>
-    <script src="jstree/jquery-3.7.1.js"></script>
-    <script src="jstree/jstree.js"></script>
-    <script src="tree.js"></script>
-    <script src="fuse.js"></script>
-    <script src="search.js"></script>
-    <script src="properties.js"></script>
-    <script src="notification.js"></script>
-    <script src="toolbar.js"></script>
-    <script src="utils.js"></script>
-  </body>
+  </div>
+  <script src="jstree/jquery-3.7.1.js"></script>
+  <script src="jstree/jstree.js"></script>
+  <script src="utils.js"></script>
+  <script src="tree.js"></script>
+  <script src="fuse.js"></script>
+  <script src="search.js"></script>
+  <script src="properties.js"></script>
+  <script src="notification.js"></script>
+  <script src="toolbar.js"></script>
+</body>
 </html>

@@ -224,7 +224,7 @@
             }
           }));
         });
-        tr.querySelector('input').focus();
+        tr.querySelector('input')?.focus();
       }
     }
     const sort = target.dataset.sort;

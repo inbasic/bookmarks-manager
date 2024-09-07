@@ -127,72 +127,82 @@ document.addEventListener('click', e => {
     const id = ids[0];
     const node = tree.jstree('get_node', id);
 
-    chrome.permissions.request({
-      origins: [node.data.url]
-    }, () => {
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(), 6000);
+    if (node.data.url) {
+      chrome.permissions.request({
+        origins: [node.data.url]
+      }, () => {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 6000);
 
-      e.target.textContent = 'Please wait...';
-      fetch(node.data.url, {
-        signal: controller.signal
-      }).then(r => r.text()).then(content => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(content, 'text/html');
+        e.target.textContent = 'Please wait...';
+        fetch(node.data.url, {
+          signal: controller.signal
+        }).then(r => r.text()).then(content => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(content, 'text/html');
 
-        const e = doc.querySelector('title');
-        if (e && e.textContent) {
-          const input = document.querySelector('#properties input[form=title]');
-          if (input.value === e.textContent) {
-            throw Error('"title" is up-do-date');
+          const e = doc.querySelector('title');
+          if (e && e.textContent) {
+            const input = document.querySelector('#properties input[form=title]');
+            if (input.value === e.textContent) {
+              throw Error('"title" is up-do-date');
+            }
+            else {
+              input.value = e.textContent;
+              input.dispatchEvent(new Event('keyup', {
+                bubbles: true
+              }));
+              return;
+            }
           }
-          else {
-            input.value = e.textContent;
-            input.dispatchEvent(new Event('keyup', {
-              bubbles: true
-            }));
-            return;
-          }
-        }
-        throw Error('Cannot find title');
-      }).catch(e => {
-        console.warn(e);
-        notify.inline(e.message);
-      }).finally(() => e.target.textContent = name);
-    });
+          throw Error('Cannot find title');
+        }).catch(e => {
+          console.warn(e);
+          notify.inline(e.message);
+        }).finally(() => e.target.textContent = name);
+      });
+    }
+    else {
+      notify.inline('This bookmark is not representing a webpage');
+    }
   }
 });
 // keyboard shortcut
-document.addEventListener('keyup', e => {
-  if ((e.ctrlKey && e.shiftKey) || e.key === 'Delete') {
-    switch (e.key) {
-    case 'C':
+document.addEventListener('keydown', e => {
+  if (
+    ((e.ctrlKey || e.metaKey) && e.shiftKey) ||
+    e.code === 'Delete' ||
+    e.code === 'Backspace'
+  ) {
+    switch (e.code) {
+    case 'KeyC':
       document.querySelector('[data-cmd=collapse]').click();
       break;
-    case 'U':
+    case 'KeyU':
       document.querySelector('[data-cmd=update-title]').click();
       break;
-    case 'O':
+    case 'KeyO':
       document.querySelector('[data-cmd=open-options]').click();
       break;
-    case 'R':
+    case 'KeyR':
       document.querySelector('[data-cmd=reset-root]').click();
       break;
-    case 'B':
+    case 'KeyB':
       document.querySelector('[data-cmd=create-bookmark]').click();
       break;
-    case 'T':
+    case 'KeyT':
       document.querySelector('[data-cmd=create-from-tab]').click();
       break;
-    case 'D':
+    case 'KeyD':
       document.querySelector('[data-cmd=create-folder]').click();
       break;
-    case 'E':
+    case 'KeyE':
       window.dispatchEvent(new Event('properties:select-title'));
       break;
-    case 'L':
+    case 'KeyL':
       tree.activate();
       break;
+    case 'Backspace':
     case 'Delete':
       document.querySelector('#toolbar [data-cmd="delete"]').click();
       break;

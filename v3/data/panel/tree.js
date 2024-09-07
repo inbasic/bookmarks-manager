@@ -15,7 +15,7 @@ function getRoot() {
   if (localStorage.getItem('root')) {
     return localStorage.getItem('root');
   }
-  return typeof InstallTrigger !== 'undefined' ? 'root________' : '0';
+  return /Firefox/.test(navigator.userAgent) ? 'root________' : '0';
 }
 
 const tree = $('#tree');
@@ -215,15 +215,44 @@ tree.jstree({
           utils.copy(ids.join('\n'));
         }
       },
+      'Open Link in New Tab': {
+        'separator_before': true,
+        'label': 'Open Link in New Tab',
+        'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
+          detail: 'new-tab'
+        })),
+        '_disabled': () => !node.data.url
+      },
+      'Open Link in Background Tab': {
+        'label': 'Open Link in Background Tab',
+        'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
+          detail: 'background-tab'
+        })),
+        '_disabled': () => !node.data.url
+      },
+      'Open Link in New Window': {
+        'label': 'Open Link in New Window',
+        'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
+          detail: 'new-window'
+        })),
+        '_disabled': () => !node.data.url
+      },
+      'Open Link in Incognito Window': {
+        'label': 'Open Link in Incognito Window',
+        'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
+          detail: 'incognito-window'
+        })),
+        '_disabled': () => !node.data.url
+      },
       'Rename Title': {
         'separator_before': true,
         'label': 'Rename Title',
-        'action': () => window.dispatchEvent(new Event('properties:select-title')),
+        'action': () => dispatchEvent(new Event('properties:select-title')),
         '_disabled': () => node.data.drag === false
       },
       'Edit Link': {
         'label': 'Edit Link',
-        'action': () => window.dispatchEvent(new Event('properties:select-link')),
+        'action': () => dispatchEvent(new Event('properties:select-link')),
         '_disabled': () => !node.data.url
       },
       'Delete Bookmark': {
@@ -314,12 +343,20 @@ if (localStorage.getItem('searchfocus') !== 'true') {
     dblclick(node, e);
   });
   // on Enter
+
   tree.on('keydown.tree', e => {
     if (e.key !== 'Enter') {
       return true;
     }
+
     const selected = tree.jstree('get_selected');
     const current = tree.jstree('get_node', e.target);
+
+    // select the hovered node
+    if (e.altKey && current.type === 'file') {
+      return true;
+    }
+
     if (current && selected.indexOf(current.id) !== -1) {
       dblclick(current);
       return false;
@@ -402,6 +439,36 @@ addEventListener('tree:open-array', e => {
       catch (e) {}
     });
   });
+});
+
+// context menu open
+addEventListener('actions:open-links', e => {
+  const ids = tree.jstree('get_selected');
+  const nodes = ids.map(id => tree.jstree('get_node', id));
+
+  if (e.detail === 'new-tab' || e.detail === 'background-tab') {
+    chrome.tabs.query({
+      active: true,
+      currentWindow: true
+    }, ([tab]) => {
+      nodes.forEach((node, n) => {
+        if (node.data.url) {
+          chrome.tabs.create({
+            url: node.data.url,
+            active: e.detail === 'new-tab',
+            index: tab.index + n + 1
+          }).catch(e => notify.inline(e.message));
+        }
+      });
+    });
+  }
+  else if (e.detail === 'new-window' || e.detail === 'incognito-window') {
+    chrome.windows.create({
+      url: nodes.map(n => n.data.url).filter(s => s),
+      incognito: e.detail === 'incognito-window',
+      focused: true
+    }).catch(e => notify.inline(e.message));
+  }
 });
 
 // theme

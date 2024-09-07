@@ -3,6 +3,8 @@
   --border: #b7b7b7;
   --bg-one: #fff;
   --bg-two: #f2f2f2;
+  --bg-selected: #beebff;
+  --bg-notify: lightyellow;
   --fg: #000;
   --active: #f4f3f4;
 
@@ -17,6 +19,8 @@ html.dark {
   --border: #505050;
   --bg-one: #464646;
   --bg-two: #2d2d2d;
+  --bg-selected: #5fa2db;
+  --bg-notify: #6d3400;
   --fg: #d3cdcd;
   --fg-alt: #fff;
   --active: #2d2d2d;
@@ -250,15 +254,15 @@ input:disabled {
   opacity: 0.5;
 }
 #results th {
-  border-bottom: 1px solid #bebebe;
-  background-color: #eee;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-two);
   font-weight: normal;
   text-align: left;
   padding-left: 10px;
   user-select: none;
 }
 #results th:last-child {
-  border-left: 1px solid #bebebe;
+  border-left: 1px solid var(--border);
 }
 #results th,
 #results td {
@@ -274,14 +278,14 @@ input:disabled {
   color: red;
 }
 #results tbody tr:nth-child(odd) {
-  background-color: #f4f3f4;
+  background-color: var(--bg-two);
 }
 #results tbody tr.selected {
-  background-color: #ccc;
+  background-color: var(--bg-selected);
 }
 #results:active tr.selected,
 #results:focus-within tr.selected {
-  background-color: #b6e8ff;
+  background-color: var(--bg-selected);
 }
 #results input[type="submit"] {
   display: none;
@@ -324,7 +328,6 @@ input:disabled {
 #properties input[type="text"]:disabled {
   background-color: transparent;
   opacity: 1 !important;
-  color: #000;
 }
 #properties input[type="submit"]:disabled {
   background-color: #ccc;
@@ -432,21 +435,18 @@ input:disabled {
   }
 }
 .favicon {
-  background-color: lightyellow;
-  padding: 10px 30px 10px 10px;
+  background-color: var(--bg-notify);
   position: relative;
+  display: grid;
+  grid-template-columns: min-content 1fr min-content;
+  grid-gap: 10px;
+  padding: 5px;
+}
+.favicon input[type="button"] {
+  align-self: baseline;
 }
 body:not([data-favicon="true"]) .favicon {
   display: none;
-}
-.favicon input[type="button"] {
-  background: transparent;
-  border: none;
-  font-size: 22px;
-  margin: -10px -10px 0 0;
-  position: absolute;
-  top: 10px;
-  right: 10px;
 }
 .jstree-themeicon-custom {
   background-size: 16px !important;
@@ -457,4 +457,7 @@ body:not([data-favicon="true"]) .favicon {
 .jstree-default-dark .jstree-clicked {
   color: var(--fg-alt);
   text-shadow: unset;
+}
+.jstree-default-dark .jstree-anchor > .jstree-icon {
+  opacity: unset;
 }

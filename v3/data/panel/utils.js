@@ -27,6 +27,9 @@ utils.favicon = (() => {
     if (url.startsWith('/')) {
       return url;
     }
+    if (url.startsWith('about:') || url.startsWith('chrome') || url.startsWith('moz')) {
+      return '/data/panel/icons/page.png';
+    }
     if (isFirefox) {
       if (localStorage.getItem('resolve') === 'true') {
         return 'http://www.google.com/s2/favicons?domain_url=' + url;
