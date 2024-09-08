@@ -1,7 +1,7 @@
 {
   "name": "Bookmark Manager and Viewer",
   "description": "An elegant bookmark manager with fuzzy search and more",
-  "version": "0.3.3",
+  "version": "0.3.3.2",
   "manifest_version": 3,
   "permissions": [
     "storage",
@@ -49,7 +49,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "{beb1b1c0-32b9-47d8-bbd1-f65bed4e7c22}",
-      "strict_min_version": "115.0"
+      "strict_min_version": "128.0"
     }
   }
 }

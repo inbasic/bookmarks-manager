@@ -197,11 +197,14 @@ input:disabled {
   margin: 0;
 }
 #tree {
-  flex: 1;
-  overflow: auto;
   position: relative;
   user-select: none;
   border-top: solid 1px var(--border);
+  display: contents;
+}
+.jstree-container-ul {
+  overflow: auto;
+  flex: 1;
 }
 #results {
   height: 300px;

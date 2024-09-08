@@ -245,7 +245,7 @@
       if (tr) {
         closePanel();
       }
-      tree.focus();
+      tree.activate();
     };
     tbody.addEventListener('dblclick', callback);
     results.addEventListener('submit', e => {

@@ -169,6 +169,7 @@ document.addEventListener('click', e => {
 });
 // keyboard shortcut
 document.addEventListener('keydown', e => {
+  console.log(e);
   if (
     ((e.ctrlKey || e.metaKey) && e.shiftKey) ||
     e.code === 'Delete' ||
@@ -204,7 +205,9 @@ document.addEventListener('keydown', e => {
       break;
     case 'Backspace':
     case 'Delete':
-      document.querySelector('#toolbar [data-cmd="delete"]').click();
+      if (e.target.tagName !== 'INPUT') {
+        document.querySelector('#toolbar [data-cmd="delete"]').click();
+      }
       break;
     }
     e.stopImmediatePropagation();

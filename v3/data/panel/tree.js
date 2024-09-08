@@ -36,6 +36,8 @@ tree.activate = () => {
     const ids = tree.jstree('get_selected');
     const id = ids[0];
     tree.jstree('hover_node', tree.element(id));
+
+    tree.element(id).focus();
   }
   catch (e) {
     console.error(e);
@@ -343,7 +345,6 @@ if (localStorage.getItem('searchfocus') !== 'true') {
     dblclick(node, e);
   });
   // on Enter
-
   tree.on('keydown.tree', e => {
     if (e.key !== 'Enter') {
       return true;
@@ -418,12 +419,12 @@ tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
 });
 
 // do not handle ctrlKey + shiftKey keys
-tree.on('keydown.tree', e => {
-  if (e.ctrlKey && e.shiftKey) {
-    e.stopImmediatePropagation();
-    return false;
-  }
-});
+// tree.on('keydown.tree', e => {
+//   if (e.ctrlKey && e.shiftKey) {
+//     e.stopImmediatePropagation();
+//     return false;
+//   }
+// });
 
 addEventListener('tree:open-array', e => {
   const arr = e.detail.nodes;
