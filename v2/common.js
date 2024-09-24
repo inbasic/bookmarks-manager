@@ -125,7 +125,12 @@ update();
 {
   const context = '';
 
-  const callback = () => {
+  const once = () => {
+    if (once.done) {
+      return;
+    }
+    once.done = true;
+
     chrome.storage.local.get({
       context,
       mode: 'popup'
@@ -140,8 +145,8 @@ update();
       }
     });
   };
-  chrome.runtime.onInstalled.addListener(callback);
-  chrome.runtime.onStartup.addListener(callback);
+  chrome.runtime.onInstalled.addListener(once);
+  chrome.runtime.onStartup.addListener(once);
 
   chrome.contextMenus.onClicked.addListener(info => {
     if (info.menuItemId === 'bookmark-link') {
@@ -163,42 +168,54 @@ update();
 
 // mode
 {
-  const callback = () => chrome.storage.local.get({
-    mode: 'popup'
-  }, prefs => chrome.browserAction.setPopup({
-    popup: prefs.mode === 'popup' ? 'data/panel/index.html' : ''
-  }));
+  const once = () => {
+    if (once.done) {
+      return;
+    }
+    once.done = true;
+    chrome.storage.local.get({
+      mode: 'popup'
+    }, prefs => chrome.browserAction.setPopup({
+      popup: prefs.mode === 'popup' ? 'data/panel/index.html' : ''
+    }));
+  };
 
-  chrome.runtime.onInstalled.addListener(callback);
-  chrome.runtime.onStartup.addListener(callback);
-  chrome.storage.onChanged.addListener(prefs => prefs.mode && callback());
+  chrome.runtime.onInstalled.addListener(once);
+  chrome.runtime.onStartup.addListener(once);
+  chrome.storage.onChanged.addListener(prefs => {
+    if (prefs.mode) {
+      once.done = false;
+      once();
+    }
+  });
 }
 chrome.browserAction.onClicked.addListener(() => chrome.tabs.create({
   url: '/data/panel/index.html?in=tab'
 }));
 
+/* FAQs & Feedback */
 {
-  const {onInstalled, setUninstallURL, getManifest} = chrome.runtime;
-  const {name, version} = getManifest();
-  const page = getManifest().homepage_url;
-  onInstalled.addListener(({reason, previousVersion}) => {
-    chrome.storage.local.get({
-      'faqs': true,
-      'last-update': 0
-    }, prefs => {
-      if (reason === 'install' || (prefs.faqs && reason === 'update')) {
-        const doUpdate = (Date.now() - prefs['last-update']) / 1000 / 60 / 60 / 24 > 45;
-        if (doUpdate && previousVersion !== version) {
-          chrome.tabs.create({
-            url: page + '?version=' + version +
-              (previousVersion ? '&p=' + previousVersion : '') +
-              '&type=' + reason,
-            active: reason === 'install'
-          });
-          chrome.storage.local.set({'last-update': Date.now()});
+  const {management, runtime: {onInstalled, setUninstallURL, getManifest}, storage, tabs} = chrome;
+  if (navigator.webdriver !== true) {
+    const {homepage_url: page, name, version} = getManifest();
+    onInstalled.addListener(({reason, previousVersion}) => {
+      management.getSelf(({installType}) => installType === 'normal' && storage.local.get({
+        'faqs': true,
+        'last-update': 0
+      }, prefs => {
+        if (reason === 'install' || (prefs.faqs && reason === 'update')) {
+          const doUpdate = (Date.now() - prefs['last-update']) / 1000 / 60 / 60 / 24 > 45;
+          if (doUpdate && previousVersion !== version) {
+            tabs.query({active: true, lastFocusedWindow: true}, tbs => tabs.create({
+              url: page + '?version=' + version + (previousVersion ? '&p=' + previousVersion : '') + '&type=' + reason,
+              active: reason === 'install',
+              ...(tbs && tbs.length && {index: tbs[0].index + 1})
+            }));
+            storage.local.set({'last-update': Date.now()});
+          }
         }
-      }
+      }));
     });
-  });
-  setUninstallURL(page + '?rd=feedback&name=' + encodeURIComponent(name) + '&version=' + version);
+    setUninstallURL(page + '?rd=feedback&name=' + encodeURIComponent(name) + '&version=' + version);
+  }
 }

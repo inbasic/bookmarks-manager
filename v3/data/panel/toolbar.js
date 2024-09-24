@@ -169,7 +169,6 @@ document.addEventListener('click', e => {
 });
 // keyboard shortcut
 document.addEventListener('keydown', e => {
-  console.log(e);
   if (
     ((e.ctrlKey || e.metaKey) && e.shiftKey) ||
     e.code === 'Delete' ||

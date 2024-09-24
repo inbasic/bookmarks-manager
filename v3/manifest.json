@@ -1,7 +1,7 @@
 {
   "name": "Bookmark Manager and Viewer",
   "description": "An elegant bookmark manager with fuzzy search and more",
-  "version": "0.3.3.2",
+  "version": "0.3.3.3",
   "manifest_version": 3,
   "permissions": [
     "storage",
@@ -17,7 +17,7 @@
   ],
   "background": {
     "service_worker": "worker.js",
-    "scripts": ["worker.js"]
+    "scripts": ["worker.js", "monitor.js", "context.js"]
   },
   "action": {
     "default_popup": "/data/panel/index.html"
