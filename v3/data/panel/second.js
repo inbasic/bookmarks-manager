@@ -42,6 +42,7 @@
               icon: children ? null : utils.favicon(node.url),
               children,
               data: {
+                index: node.index,
                 dateGroupModified: node.dateGroupModified,
                 dateAdded: node.dateAdded,
                 url: node.url || ''

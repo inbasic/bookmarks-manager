@@ -18,6 +18,128 @@ function getRoot() {
   return /Firefox/.test(navigator.userAgent) ? 'root________' : '0';
 }
 
+const manager = {
+  action: null,
+  async copy() {
+    const children = async id => {
+      const childs = await chrome.bookmarks.getChildren(id);
+      const results = [];
+
+      for (const node of childs) {
+        const c = {
+          id: node.id,
+          text: node.title
+        };
+        if (c.url) {
+          c.url = node.url;
+        }
+        else {
+          c.children = await children(node.id);
+        }
+        results.push(c);
+      }
+      return results;
+    };
+    const nodes = [];
+    for (const id of tree.jstree('get_selected')) {
+      const node = tree.jstree('get_node', id);
+      const n = {
+        id,
+        text: node.text,
+        url: node.data.url
+      };
+      if (['folder', 'd_folder'].includes(node.type)) {
+        n.children = await children(id);
+      }
+      nodes.push(n);
+    }
+
+    manager.action = {
+      command: 'copy',
+      nodes
+    };
+  },
+  cut() {
+    const ids = tree.jstree('get_selected');
+    manager.action = {
+      command: 'cut',
+      ids
+    };
+  },
+  async paste() {
+    const ids = tree.jstree('get_selected');
+    const node = tree.jstree('get_node', ids[0]);
+
+    const isDir = ['folder', 'd_folder'].includes(node.type);
+    const parentId = isDir ? node.id : node.parent;
+
+    if (manager.action.command === 'cut') {
+      let index = 0;
+      if (isDir === false) {
+        if ('index' in node.data) {
+          index = node.data.index + 1;
+        }
+      }
+      for (const id of manager.action.ids) {
+        await chrome.bookmarks.move(id, {
+          parentId,
+          index
+        });
+        tree.jstree().move_node(id, parentId, index);
+        index += 1;
+      }
+      delete manager.action;
+    }
+    else if (manager.action.command === 'copy') {
+      let index = 0;
+      if (isDir === false) {
+        if ('index' in node.data) {
+          index = node.data.index + 1;
+        }
+      }
+      const add = async (n, parentId, index) => {
+        const nn = await chrome.bookmarks.create({
+          parentId,
+          index,
+          title: n.text,
+          url: n.url
+        });
+        tree.jstree('create_node', parentId, {
+          text: n.text,
+          id: nn.id,
+          type: n.url ? 'file' : 'folder',
+          icon: n.url ? utils.favicon(n.url) : null,
+          data: {
+            index,
+            dateGroupModified: nn.dateGroupModified,
+            dateAdded: nn.dateAdded,
+            url: n.url
+          }
+        }, index);
+        console.log(n);
+
+        if (n.children) {
+          let mn = 0;
+          for (const m of n.children) {
+            await add(m, nn.id, mn);
+            mn += 1;
+          }
+        }
+      };
+
+      for (const n of manager.action.nodes) {
+        await add(n, parentId, index);
+        index += 1;
+      }
+
+      delete manager.action;
+    }
+    else {
+      console.log('action not supported', manager.action.command);
+    }
+  }
+};
+
 const tree = $('#tree');
 tree.isFeed = url => url && (
   url.indexOf('rss') !== -1 ||
@@ -168,6 +290,7 @@ tree.jstree({
               },
               data: {
                 type: node.type,
+                index: node.index,
                 dateGroupModified: node.dateGroupModified,
                 dateAdded: node.dateAdded,
                 url: node.url || '',
@@ -190,8 +313,10 @@ tree.jstree({
     }
   },
   'contextmenu': {
-    'items': node => ({
-      'Copy Title': {
+    'items': node => {
+      const items = {};
+
+      items['Copy Title'] = {
         'label': 'Copy Title',
         'action': () => {
           const ids = tree.jstree('get_selected');
@@ -199,70 +324,101 @@ tree.jstree({
 
           utils.copy(nodes.map(node => node.text).join('\n'));
         }
-      },
-      'Copy Link': {
-        'label': 'Copy Link',
-        'action': () => {
-          const ids = tree.jstree('get_selected');
-          const nodes = ids.map(id => tree.jstree('get_node', id));
+      };
+      if (node.data.url) {
+        items['Copy Link'] = {
+          'label': 'Copy Link',
+          'action': () => {
+            const ids = tree.jstree('get_selected');
+            const nodes = ids.map(id => tree.jstree('get_node', id));
 
-          utils.copy(nodes.map(node => node.data.url).join('\n'));
-        },
-        '_disabled': () => !node.data.url
-      },
-      'Copy ID': {
+            utils.copy(nodes.map(node => node.data.url).join('\n'));
+          }
+        };
+      }
+      items['Copy ID'] = {
         'label': 'Copy ID',
         'action': () => {
           const ids = tree.jstree('get_selected');
           utils.copy(ids.join('\n'));
         }
-      },
-      'Open Link in New Tab': {
-        'separator_before': true,
-        'label': 'Open Link in New Tab',
-        'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
-          detail: 'new-tab'
-        })),
-        '_disabled': () => !node.data.url
-      },
-      'Open Link in Background Tab': {
-        'label': 'Open Link in Background Tab',
-        'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
-          detail: 'background-tab'
-        })),
-        '_disabled': () => !node.data.url
-      },
-      'Open Link in New Window': {
-        'label': 'Open Link in New Window',
-        'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
-          detail: 'new-window'
-        })),
-        '_disabled': () => !node.data.url
-      },
-      'Open Link in Incognito Window': {
-        'label': 'Open Link in Incognito Window',
-        'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
-          detail: 'incognito-window'
-        })),
-        '_disabled': () => !node.data.url
-      },
-      'Rename Title': {
-        'separator_before': true,
-        'label': 'Rename Title',
-        'action': () => dispatchEvent(new Event('properties:select-title')),
-        '_disabled': () => node.data.drag === false
-      },
-      'Edit Link': {
-        'label': 'Edit Link',
-        'action': () => dispatchEvent(new Event('properties:select-link')),
-        '_disabled': () => !node.data.url
-      },
-      'Delete Bookmark': {
-        'label': 'Delete Bookmark',
-        'action': () => document.querySelector('#toolbar [data-cmd="delete"]').click(),
-        '_disabled': () => node.data.drag === false
-      },
-      'Validate Bookmark': {
+      };
+      if (node.data.url) {
+        items['Open'] = {
+          'label': 'Open',
+          'separator_before': true,
+          'submenu': {
+            'Open Link in New Tab': {
+              'label': 'Open Link in New Tab',
+              'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
+                detail: 'new-tab'
+              }))
+            },
+            'Open Link in Background Tab': {
+              'label': 'Open Link in Background Tab',
+              'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
+                detail: 'background-tab'
+              }))
+            },
+            'Open Link in New Window': {
+              'label': 'Open Link in New Window',
+              'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
+                detail: 'new-window'
+              }))
+            },
+            'Open Link in Incognito Window': {
+              'label': 'Open Link in Incognito Window',
+              'action': () => dispatchEvent(new CustomEvent('actions:open-links', {
+                detail: 'incognito-window'
+              }))
+            }
+          }
+        };
+      }
+      if (node.data.drag || node.data.url) {
+        const submenu = {};
+        if (node.data.drag) {
+          submenu['Rename Title'] = {
+            'label': 'Rename Title',
+            'action': () => dispatchEvent(new Event('properties:select-title'))
+          };
+        }
+        if (node.data.url) {
+          submenu['Change Link'] = {
+            'label': 'Change Link',
+            'action': () => dispatchEvent(new Event('properties:select-link'))
+          };
+        }
+        items['Edit'] = {
+          'label': 'Edit',
+          'separator_before': true,
+          submenu
+        };
+      }
+      if (node.data.drag) {
+        items['Copy Bookmark'] = {
+          'separator_before': true,
+          'label': 'Copy Bookmark',
+          'action': () => manager.copy()
+        };
+        items['Cut Bookmark'] = {
+          'label': 'Cut Bookmark',
+          'action': () => manager.cut()
+        };
+      }
+      if (manager.action) {
+        items['Paste Bookmark'] = {
+          'label': 'Paste Bookmark',
+          'action': () => manager.paste()
+        };
+      }
+      if (node.data.drag) {
+        items['Delete Bookmark'] = {
+          'label': 'Delete Bookmark',
+          'action': () => document.querySelector('#toolbar [data-cmd="delete"]').click()
+        };
+      }
+      items['Validate Bookmark'] = {
         'separator_before': true,
         'label': 'Search or Validate Bookmarks',
         'action': () => {
@@ -278,23 +434,26 @@ tree.jstree({
           input.dispatchEvent(new Event('search'));
           input.focus();
         }
-      },
-      'Set as Root': {
-        'label': 'Set as Root',
-        'action': () => {
-          const ids = tree.jstree('get_selected');
+      };
+      if (node.data.url) {
+        items['Set as Root'] = {
+          'label': 'Set as Root',
+          'action': () => {
+            const ids = tree.jstree('get_selected');
 
-          if (ids.length === 1) {
-            localStorage.setItem('root', ids[0]);
-            location.reload();
+            if (ids.length === 1) {
+              localStorage.setItem('root', ids[0]);
+              location.reload();
+            }
+            else {
+              notify.inline('Please select a single directory');
+            }
           }
-          else {
-            notify.inline('Please select a single directory');
-          }
-        },
-        '_disabled': () => node.data.url
+        };
       }
-    })
+
+      return items;
+    }
   },
   'sort': function(a, b) {
     a = this.get_node(a);
@@ -387,6 +546,7 @@ tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
         // update node
         tree.jstree(true).set_id(data.node, bookmark.id);
         data.node.data = {
+          index: bookmark.index,
           dateGroupModified: bookmark.dateGroupModified,
           dateAdded: bookmark.dateAdded,
           url: bookmark.url || ''

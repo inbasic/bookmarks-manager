@@ -25,22 +25,26 @@ document.addEventListener('click', e => {
 
   ${nodes.map((node, i) => (i + 1) + '. ' + (node.data.url || node.text)).join('\n  ')}`, a => {
       if (a) {
-        nodes.forEach(node => chrome.bookmarks[node.type === 'folder' ? 'removeTree' : 'remove'](node.id, () => {
-          // jstree
-          tree.jstree('select_node', node.parent);
-          if (tree.jstree('delete_node', node.id) === false) {
-            notify.inline('Cannot delete nodes');
-            throw Error('CANNOT_DELETE');
-          }
-          // results
-          const results = document.querySelector('#results tbody');
-          const rtr = results.querySelector(`[data-id="${node.id}"]`);
-          if (rtr) {
-            rtr.parentNode.removeChild(rtr);
-          }
-          // reseting fuse
-          window.dispatchEvent(new Event('search:reset-fuse'));
-        }));
+        nodes.forEach(node => {
+          const isDir = ['folder', 'd_folder'].includes(node.type);
+
+          chrome.bookmarks[isDir ? 'removeTree' : 'remove'](node.id, () => {
+            // jstree
+            tree.jstree('select_node', node.parent);
+            if (tree.jstree('delete_node', node.id) === false) {
+              notify.inline('Cannot delete nodes');
+              throw Error('CANNOT_DELETE');
+            }
+            // results
+            const results = document.querySelector('#results tbody');
+            const rtr = results.querySelector(`[data-id="${node.id}"]`);
+            if (rtr) {
+              rtr.parentNode.removeChild(rtr);
+            }
+            // reseting fuse
+            window.dispatchEvent(new Event('search:reset-fuse'));
+          });
+        });
       }
     });
   }
@@ -52,12 +56,13 @@ document.addEventListener('click', e => {
     }
     const id = ids[0];
     const node = tree.jstree('get_node', id);
-    const parentId = node.type === 'folder' ? node.id : node.parent;
+    const isDir = ['folder', 'd_folder'].includes(node.type);
+    const parentId = isDir ? node.id : node.parent;
 
     const prp = {
       parentId
     };
-    if (node.type === 'folder') {
+    if (isDir) {
       prp.index = 0;
     }
     else {
@@ -82,6 +87,7 @@ document.addEventListener('click', e => {
     })(function(url, title) {
       prp.url = url;
       prp.title = title;
+
       chrome.bookmarks.create(prp, node => {
         tree.jstree('create_node', parentId, {
           text: node.title,
@@ -89,6 +95,7 @@ document.addEventListener('click', e => {
           type: url ? 'file' : 'folder',
           icon: url ? utils.favicon(url) : null,
           data: {
+            index: node.index,
             dateGroupModified: node.dateGroupModified,
             dateAdded: node.dateAdded,
             url
