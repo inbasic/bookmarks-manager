@@ -88,7 +88,6 @@ const manager = {
         tree.jstree().move_node(id, parentId, index);
         index += 1;
       }
-      delete manager.action;
     }
     else if (manager.action.command === 'copy') {
       let index = 0;
@@ -116,7 +115,6 @@ const manager = {
             url: n.url
           }
         }, index);
-        console.log(n);
 
         if (n.children) {
           let mn = 0;
@@ -131,8 +129,6 @@ const manager = {
         await add(n, parentId, index);
         index += 1;
       }
-
-      delete manager.action;
     }
     else {
       console.log('action not supported', manager.action.command);
@@ -316,33 +312,56 @@ tree.jstree({
     'items': node => {
       const items = {};
 
-      items['Copy Title'] = {
-        'label': 'Copy Title',
-        'action': () => {
-          const ids = tree.jstree('get_selected');
-          const nodes = ids.map(id => tree.jstree('get_node', id));
-
-          utils.copy(nodes.map(node => node.text).join('\n'));
-        }
-      };
-      if (node.data.url) {
-        items['Copy Link'] = {
-          'label': 'Copy Link',
+      {
+        const submenu = {};
+        submenu['Copy Title'] = {
+          'label': 'Copy Title',
           'action': () => {
             const ids = tree.jstree('get_selected');
             const nodes = ids.map(id => tree.jstree('get_node', id));
 
-            utils.copy(nodes.map(node => node.data.url).join('\n'));
+            utils.copy(nodes.map(node => node.text).join('\n'));
           }
         };
-      }
-      items['Copy ID'] = {
-        'label': 'Copy ID',
-        'action': () => {
-          const ids = tree.jstree('get_selected');
-          utils.copy(ids.join('\n'));
+        if (node.data.url) {
+          submenu['Copy Link'] = {
+            'label': 'Copy Link',
+            'action': () => {
+              const ids = tree.jstree('get_selected');
+              const nodes = ids.map(id => tree.jstree('get_node', id));
+
+              utils.copy(nodes.map(node => node.data.url).join('\n'));
+            }
+          };
         }
+        submenu['Copy ID'] = {
+          'label': 'Copy ID',
+          'action': () => {
+            const ids = tree.jstree('get_selected');
+            utils.copy(ids.join('\n'));
+          }
+        };
+        items['Copy Properties'] = {
+          'label': 'Copy Properties',
+          submenu
+        };
+      }
+      items['Copy Bookmark'] = {
+        'label': 'Copy Bookmark',
+        'action': () => manager.copy()
       };
+      if (node.data.drag) {
+        items['Cut Bookmark'] = {
+          'label': 'Cut Bookmark',
+          'action': () => manager.cut()
+        };
+      }
+      if (manager.action) {
+        items['Paste Bookmark'] = {
+          'label': 'Paste Bookmark',
+          'action': () => manager.paste()
+        };
+      }
       if (node.data.url) {
         items['Open'] = {
           'label': 'Open',
@@ -396,23 +415,6 @@ tree.jstree({
         };
       }
       if (node.data.drag) {
-        items['Copy Bookmark'] = {
-          'separator_before': true,
-          'label': 'Copy Bookmark',
-          'action': () => manager.copy()
-        };
-        items['Cut Bookmark'] = {
-          'label': 'Cut Bookmark',
-          'action': () => manager.cut()
-        };
-      }
-      if (manager.action) {
-        items['Paste Bookmark'] = {
-          'label': 'Paste Bookmark',
-          'action': () => manager.paste()
-        };
-      }
-      if (node.data.drag) {
         items['Delete Bookmark'] = {
           'label': 'Delete Bookmark',
           'action': () => document.querySelector('#toolbar [data-cmd="delete"]').click()
@@ -435,7 +437,7 @@ tree.jstree({
           input.focus();
         }
       };
-      if (node.data.url) {
+      if (!node.data.url) {
         items['Set as Root'] = {
           'label': 'Set as Root',
           'action': () => {
