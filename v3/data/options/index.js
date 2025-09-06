@@ -18,6 +18,7 @@ function restore() {
   document.getElementById('searchfocus').checked = localStorage.getItem('searchfocus') === 'true';
   document.getElementById('resolve').checked = localStorage.getItem('resolve') === 'true';
   document.getElementById('theme-source').value = localStorage.getItem('theme-source') || 'auto';
+  document.getElementById('rss-support').checked = localStorage.getItem('rss-support') || 'true';
 
   chrome.storage.local.get({
     width: 500,
@@ -38,6 +39,7 @@ function save() {
   localStorage.setItem('searchfocus', document.getElementById('searchfocus').checked);
   localStorage.setItem('resolve', document.getElementById('resolve').checked);
   localStorage.setItem('theme-source', document.getElementById('theme-source').value);
+  localStorage.setItem('rss-support', document.getElementById('rss-support').checked);
 
   chrome.runtime.sendMessage({
     cmd: 'theme-source'

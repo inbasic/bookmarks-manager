@@ -21,6 +21,8 @@ function getRoot() {
 const manager = {
   action: null,
   async copy() {
+    const items = []; // for clipboard storage
+
     const children = async id => {
       const childs = await chrome.bookmarks.getChildren(id);
       const results = [];
@@ -30,8 +32,12 @@ const manager = {
           id: node.id,
           text: node.title
         };
-        if (c.url) {
+        if (node.url) {
           c.url = node.url;
+          items.push({
+            title: node.title,
+            url: node.url
+          });
         }
         else {
           c.children = await children(node.id);
@@ -48,10 +54,26 @@ const manager = {
         text: node.text,
         url: node.data.url
       };
+      items.push({
+        title: n.text,
+        url: n.url
+      });
       if (['folder', 'd_folder'].includes(node.type)) {
         n.children = await children(id);
       }
       nodes.push(n);
+    }
+    // for browsers to paste
+    {
+      const html = items.map(i => `<a href="${i.url}">${i.title}</a>`).join('<br>');
+      const text = items.map(i => i.url).join('\n');
+
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'text/plain': new Blob([text], {type: 'text/plain'}),
+          'text/html': new Blob([html], {type: 'text/html'})
+        })
+      ]);
     }
 
     manager.action = {
@@ -131,18 +153,21 @@ const manager = {
       }
     }
     else {
-      console.log('action not supported', manager.action.command);
+      console.info('action not supported', manager.action.command);
     }
   }
 };
 
 const tree = $('#tree');
-tree.isFeed = url => url && (
+tree.isFeed = url => localStorage.getItem('rss-support') !== 'false' && url && (
   url.indexOf('rss') !== -1 ||
   url.indexOf('feed') !== -1
 );
 tree.string = {};
-tree.plugins = ['state', 'dnd', 'types', 'contextmenu', 'conditionalselect'];
+tree.plugins = ['dnd', 'types', 'contextmenu', 'conditionalselect'];
+if (localStorage.getItem('state') !== 'false') {
+  tree.plugins.push('state');
+}
 if (localStorage.getItem('sort') === 'true') {
   tree.plugins.push('sort');
 }
@@ -216,95 +241,101 @@ tree.jstree({
       return true;
     },
     'multiple': true,
-    'data': (obj, cb) => {
+    'data': async (obj, cb) => {
       if (obj.data && obj.data.feed) {
-        fetch(obj.data.url).then(r => r.text())
-          .then(str => (new DOMParser()).parseFromString(str, 'text/xml'))
-          .then(doc => {
-            const items = [...doc.querySelectorAll('item')];
-            if (items && items.length) {
-              cb(items.map(item => {
-                const url = item.querySelector('link').textContent;
-                const title = item.querySelector('title').textContent || 'unknown title';
-                const date = item.querySelector('pubDate').textContent || '';
-                return {
-                  text: tree.string.escape(title),
-                  id: 'feed-' + Math.random(),
-                  type: 'file',
-                  icon: utils.favicon(url),
-                  children: false,
-                  a_attr: { // open with middle-click
-                    href: url
-                  },
-                  data: {
-                    dateGroupModified: date,
-                    dateAdded: date,
-                    url,
-                    feed: tree.isFeed(url),
-                    drag: false
-                  }
-                };
-              }));
+        try {
+          const r = await fetch(obj.data.url);
+          if (!r.ok) {
+            throw Error('FETCH_FAILE_' + r.status);
+          }
+          const str = await r.text();
+          const doc = (new DOMParser()).parseFromString(str, 'text/xml');
+          const items = [...doc.querySelectorAll('item')];
+
+          if (items && items.length) {
+            cb(items.map(item => {
+              const url = item.querySelector('link').textContent;
+              const title = item.querySelector('title').textContent || 'unknown title';
+              const date = item.querySelector('pubDate').textContent || '';
+              return {
+                text: tree.string.escape(title),
+                id: 'feed-' + Math.random(),
+                type: 'file',
+                icon: utils.favicon(url),
+                children: false,
+                a_attr: { // open with middle-click
+                  href: url
+                },
+                data: {
+                  dateGroupModified: date,
+                  dateAdded: date,
+                  url,
+                  feed: tree.isFeed(url),
+                  drag: false
+                }
+              };
+            }));
+          }
+          else {
+            throw Error('empty feed');
+          }
+        }
+        catch (e) {
+          cb([{
+            text: e.message || 'unknown error',
+            id: 'feed-' + Math.random(),
+            type: 'file',
+            icon: '',
+            children: false,
+            a_attr: { // open with middle-click
+              href: ''
+            },
+            data: {
+              dateGroupModified: '',
+              dateAdded: '',
+              url: '',
+              feed: false,
+              drag: false
             }
-            else {
-              throw Error('empty feed');
-            }
-          }).catch(e => {
-            cb([{
-              text: e.message || 'unknown error',
-              id: 'feed-' + Math.random(),
-              type: 'file',
-              icon: '',
-              children: false,
-              a_attr: { // open with middle-click
-                href: ''
-              },
-              data: {
-                dateGroupModified: '',
-                dateAdded: '',
-                url: '',
-                feed: false,
-                drag: false
-              }
-            }]);
-          });
+          }]);
+        }
       }
       else {
-        chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id, nodes => {
-          cb(nodes.map(node => {
-            const feed = tree.isFeed(node.url);
-            const children = !node.url || feed === true;
-            const drag = node.parentId !== '0' && node.parentId !== 'root________';
-            const rtn = {
-              text: node.type === 'separator' ? '..............' : tree.string.escape(node.title),
-              id: node.id,
-              type: children ? (drag ? 'folder' : 'd_folder') : (node.type === 'separator' ? 'separator' : 'file'),
-              icon: children ? null : utils.favicon(node.url),
-              children,
-              a_attr: { // open with middle-click
-                href: node.url || '#'
-              },
-              data: {
-                type: node.type,
-                index: node.index,
-                dateGroupModified: node.dateGroupModified,
-                dateAdded: node.dateAdded,
-                url: node.url || '',
-                feed,
-                drag
-              },
-              state: {
-                hidden: node.url && node.url.startsWith('place:')
-              }
-            };
-            if (node.type === 'separator') {
-              rtn.li_attr = {
-                'class': 'separator'
-              };
+        const nodes = await chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id);
+
+        cb(nodes.map(node => {
+          const feed = tree.isFeed(node.url);
+          const children = !node.url || feed === true;
+          const drag = node.parentId !== '0' && node.parentId !== 'root________';
+          const rtn = {
+            text: node.type === 'separator' ? '..............' : tree.string.escape(node.title),
+            id: node.id,
+            type: children ? (drag ? 'folder' : 'd_folder') : (node.type === 'separator' ? 'separator' : 'file'),
+            icon: children ? null : utils.favicon(node.url),
+            children,
+            a_attr: { // open with middle-click
+              href: node.url || '#'
+            },
+            data: {
+              type: node.type,
+              index: node.index,
+              dateGroupModified: node.dateGroupModified,
+              dateAdded: node.dateAdded,
+              url: node.url || '',
+              feed,
+              drag
+            },
+            state: {
+              hidden: node.url && node.url.startsWith('place:')
             }
-            return rtn;
-          }));
-        });
+          };
+          if (node.type === 'separator') {
+            rtn.li_attr = {
+              'class': 'separator'
+            };
+          }
+          return rtn;
+        }));
       }
     }
   },
@@ -471,12 +502,22 @@ tree.jstree({
   }
 });
 
-// activate on startup
-if (localStorage.getItem('searchfocus') !== 'true') {
-  tree.one('state_ready.jstree', () => {
+// Activate on startup
+tree.one('state_ready.jstree', () => {
+  // Bring the node into view
+  const ids = tree.jstree('get_selected');
+  if (ids.length) {
+    const node = tree.jstree('get_node', ids[0], true)[0];
+    node.scrollIntoView({
+      block: 'center'
+    });
+  }
+
+  if (localStorage.getItem('searchfocus') !== 'true') {
     tree.activate();
-  });
-}
+  }
+});
+
 
 // open links on dblclick or Enter
 {
@@ -568,9 +609,15 @@ tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
     });
   }
   else {
+    let index = data.position;
+    if (data.position > data.old_position) {
+      if (/Firefox/.test(navigator.userAgent) === false) {
+        index += 1;
+      }
+    }
     chrome.bookmarks.move(data.node.id, {
       parentId: data.parent,
-      index: data.position + (data.position > data.old_position ? 1 : 0)
+      index
     }, () => {
       const lastError = chrome.runtime.lastError;
       if (lastError) {

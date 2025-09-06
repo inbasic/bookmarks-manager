@@ -1,7 +1,7 @@
 {
   "name": "Bookmark Manager and Viewer",
   "description": "An elegant bookmark manager with fuzzy search and more",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "manifest_version": 3,
   "permissions": [
     "storage",
@@ -20,30 +20,30 @@
     "scripts": ["worker.js", "monitor.js", "context.js"]
   },
   "action": {
-    "default_popup": "/data/panel/index.html"
+    "default_popup": "data/panel/index.html"
   },
   "sidebar_action": {
-    "default_panel": "/data/panel/index.html?in=sidebar",
+    "default_panel": "data/panel/index.html?in=sidebar",
     "default_icon": {
-      "16": "/data/icons/16.png",
-      "32": "/data/icons/32.png",
-      "48": "/data/icons/48.png",
-      "64": "/data/icons/64.png",
-      "128": "/data/icons/128.png"
+      "16": "data/icons/16.png",
+      "32": "data/icons/32.png",
+      "48": "data/icons/48.png",
+      "64": "data/icons/64.png",
+      "128": "data/icons/128.png"
     }
   },
   "homepage_url": "https://webextension.org/listing/bookmarks-manager.html",
   "icons": {
-    "16": "/data/icons/16.png",
-    "32": "/data/icons/32.png",
-    "48": "/data/icons/48.png",
-    "64": "/data/icons/64.png",
-    "128": "/data/icons/128.png",
-    "256": "/data/icons/256.png",
-    "512": "/data/icons/512.png"
+    "16": "data/icons/16.png",
+    "32": "data/icons/32.png",
+    "48": "data/icons/48.png",
+    "64": "data/icons/64.png",
+    "128": "data/icons/128.png",
+    "256": "data/icons/256.png",
+    "512": "data/icons/512.png"
   },
   "options_ui": {
-    "page": "/data/options/index.html",
+    "page": "data/options/index.html",
     "open_in_tab": true
   },
   "browser_specific_settings": {
