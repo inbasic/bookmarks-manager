@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2022 InBasic
+/* Copyright (C) 2014-2025 InBasic
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,7 @@
 
 'use strict';
 
-var log = document.getElementById('status');
+const log = document.getElementById('status');
 
 function restore() {
   document.getElementById('css').value = localStorage.getItem('css') || '';
@@ -18,7 +18,7 @@ function restore() {
   document.getElementById('searchfocus').checked = localStorage.getItem('searchfocus') === 'true';
   document.getElementById('resolve').checked = localStorage.getItem('resolve') === 'true';
   document.getElementById('theme-source').value = localStorage.getItem('theme-source') || 'auto';
-  document.getElementById('rss-support').checked = localStorage.getItem('rss-support') || 'true';
+  document.getElementById('rss-support').checked = localStorage.getItem('rss-support') === 'true';
 
   chrome.storage.local.get({
     width: 500,

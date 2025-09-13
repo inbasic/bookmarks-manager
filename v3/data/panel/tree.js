@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2022 InBasic
+/* Copyright (C) 2014-2025 InBasic
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -65,8 +65,8 @@ const manager = {
     }
     // for browsers to paste
     {
-      const html = items.map(i => `<a href="${i.url}">${i.title}</a>`).join('<br>');
-      const text = items.map(i => i.url).join('\n');
+      const html = items.map(i => `<a href="${i.url || i.title}">${i.title}</a>`).join('<br>');
+      const text = items.map(i => i.url || i.title).join('\n');
 
       navigator.clipboard.write([
         new ClipboardItem({
@@ -94,6 +94,11 @@ const manager = {
 
     const isDir = ['folder', 'd_folder'].includes(node.type);
     const parentId = isDir ? node.id : node.parent;
+
+    // since we support paste from clipboard
+    manager.action = manager.action || {
+      command: 'copy'
+    };
 
     if (manager.action.command === 'cut') {
       let index = 0;
@@ -132,8 +137,8 @@ const manager = {
           icon: n.url ? utils.favicon(n.url) : null,
           data: {
             index,
-            dateGroupModified: nn.dateGroupModified,
-            dateAdded: nn.dateAdded,
+            dateGroupModified: nn.dateGroupModified || Date.now(),
+            dateAdded: nn.dateAdded || Date.now(),
             url: n.url
           }
         }, index);
@@ -147,9 +152,50 @@ const manager = {
         }
       };
 
+      if (!manager.action.nodes) {
+        await chrome.permissions.request({
+          permissions: ['clipboardRead']
+        });
+        const clipboard = await navigator.clipboard.readText();
+        if (!clipboard) {
+          throw Error('NO_CONTENT_TO_PASTE');
+        }
+        const items = clipboard.trim().split('\n');
+        if (items.some(s => s.trim() === '')) {
+          throw Error('INVALID_DATA');
+        }
+        manager.action.nodes = items.map(s => {
+          if (s.startsWith('http')) {
+            return {
+              text: s,
+              url: s
+            };
+          }
+          else {
+            return {
+              text: s
+            };
+          }
+        });
+        // confirm from user
+        if (manager.action.nodes.length > 10) {
+          const c = await new Promise(resolve => {
+            notify.confirm(`About to paste ${manager.action.nodes.length} items from clipboard?`, resolve);
+          });
+          if (!c) {
+            delete manager.action.nodes;
+            throw Error('USER_ABORT');
+          }
+          manager.action.next = 'delete'; // delete extracted data from clipboard to read new data
+        }
+      }
       for (const n of manager.action.nodes) {
         await add(n, parentId, index);
         index += 1;
+      }
+      if (manager.action.next === 'delete') {
+        delete manager.action.next;
+        delete manager.action.nodes;
       }
     }
     else {
@@ -159,10 +205,8 @@ const manager = {
 };
 
 const tree = $('#tree');
-tree.isFeed = url => localStorage.getItem('rss-support') !== 'false' && url && (
-  url.indexOf('rss') !== -1 ||
-  url.indexOf('feed') !== -1
-);
+tree.isFeed = url => localStorage.getItem('rss-support') === 'true' && url &&
+  (url.includes('rss') || url.includes('feed'));
 tree.string = {};
 tree.plugins = ['dnd', 'types', 'contextmenu', 'conditionalselect'];
 if (localStorage.getItem('state') !== 'false') {
@@ -387,12 +431,15 @@ tree.jstree({
           'action': () => manager.cut()
         };
       }
-      if (manager.action) {
-        items['Paste Bookmark'] = {
-          'label': 'Paste Bookmark',
-          'action': () => manager.paste()
-        };
-      }
+      items['Paste Bookmark'] = {
+        'label': 'Paste Bookmark',
+        'action': () => {
+          manager.paste().catch(e => {
+            console.error(e);
+            notify.inline(e.message);
+          });
+        }
+      };
       if (node.data.url) {
         items['Open'] = {
           'label': 'Open',
@@ -711,3 +758,22 @@ addEventListener('actions:open-links', e => {
   });
   chrome.runtime.onMessage.addListener(request => request.cmd === 'theme-source' && run());
 }
+// copy & paste from keyword
+tree.on('copy', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  manager.copy();
+});
+tree.on('cut', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  manager.cut();
+});
+tree.on('paste', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  manager.paste().catch(e => {
+    console.error(e);
+    notify.inline(e.message);
+  });
+});

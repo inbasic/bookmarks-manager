@@ -1,7 +1,7 @@
 {
   "name": "Bookmark Manager and Viewer",
   "description": "An elegant bookmark manager with fuzzy search and more",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "manifest_version": 3,
   "permissions": [
     "storage",
@@ -11,6 +11,9 @@
     "notifications",
     "contextMenus",
     "declarativeContent"
+  ],
+  "optional_permissions": [
+    "clipboardRead"
   ],
   "optional_host_permissions": [
     "*://*/*"
