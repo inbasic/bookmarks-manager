@@ -19,7 +19,7 @@ properties.addEventListener('keyup', e => {
     tr.querySelector('[type=submit]').disabled = !(target && target.dataset.value !== target.value && target.value);
   }
 });
-properties.addEventListener('submit', e => {
+properties.addEventListener('submit', async e => {
   e.preventDefault();
   e.stopPropagation();
 
@@ -30,28 +30,63 @@ properties.addEventListener('submit', e => {
   const prp = {};
   prp[form.id] = input.value;
 
-  chrome.bookmarks.update(id, prp, () => {
-    input.dataset.value = input.value;
-    tr.querySelector('[type=submit]').disabled = true;
-    // updating search view
-    const results = document.querySelector('#results tbody');
-    const rtr = results.querySelector(`[data-id="${id}"]`);
-    if (rtr) {
-      rtr.querySelector('td:nth-child(' + (form.id === 'title' ? 1 : 2) + ')').textContent = input.value;
+  const ids = e.shiftKey ? tree.jstree('get_selected') : [id];
+
+  for (const id of ids) {
+    try {
+      await chrome.bookmarks.update(id, prp);
+
+      input.dataset.value = input.value;
+
+      tr.querySelector('[type=submit]').disabled = true;
+      // updating search view
+      const results = document.querySelector('#results tbody');
+      const rtr = results.querySelector(`[data-id="${id}"]`);
+      if (rtr) {
+        rtr.querySelector('td:nth-child(' + (form.id === 'title' ? 1 : 2) + ')').textContent = input.value;
+      }
+      // updating tree view
+      if (form.id === 'title') {
+        tree.jstree('set_text', id, tree.string.escape(prp.title));
+      }
     }
-    // updating tree view
-    if (form.id === 'title') {
-      tree.jstree('set_text', id, tree.string.escape(prp.title));
+    catch (e) {
+      console.error(e);
+      notify.inline('[Refresh Required] ' + e.message);
     }
-    // reseting fuse
-    window.dispatchEvent(new Event('search:reset-fuse'));
-    //
-    const lastError = chrome.runtime.lastError;
-    if (lastError) {
-      notify.inline('[Refresh Required] ' + lastError.message);
+  }
+  // resetting fuse
+  window.dispatchEvent(new Event('search:reset-fuse'));
+});
+// add support for shiftKey to submit
+{
+  const fix = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const ev = new Event('submit', {
+        bubbles: true,
+        cancelable: true
+      });
+      Object.defineProperty(ev, 'shiftKey', {
+        value: true
+      });
+      e.target.form.dispatchEvent(ev);
+  };
+  properties.addEventListener('keydown', e => {
+    if (e.shiftKey) {
+      if (e.key === 'Enter' && e.target?.form?.id === 'title') {
+        fix(e);
+      }
     }
   });
-});
+  properties.addEventListener('mousedown', e => {
+    if (e.shiftKey) {
+      if (e.target?.form?.id === 'title') {
+        fix(e);
+      }
+    }
+  });
+}
 
 addEventListener('properties:select-title', () => {
   const title = properties.querySelector('tr:nth-child(1) input');
