@@ -464,3 +464,7 @@ body:not([data-favicon="true"]) .favicon {
 .jstree-default-dark .jstree-anchor > .jstree-icon {
   opacity: unset;
 }
+
+#tips code {
+  background-color: rgba(125, 125, 125, 0.2);
+}

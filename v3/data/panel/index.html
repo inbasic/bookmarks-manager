@@ -21,20 +21,11 @@
   </div>
   <textarea style="display: none;"></textarea> <!-- for copy title and link to clipboard -->
   <form id="search">
-    <input type="search" placeholder="For fuzzy search use 'fuzzy:'" title="For fuzzy search use 'fuzzy:'
-For directory search use 'root:id query'
-
-To switch to the active element in the search result press Enter
-To select this box use Ctrl + F">
+    <input type="search" placeholder="For fuzzy search use 'fuzzy:'">
     <input type="submit"/>
     <input type="button" data-cmd="open-in-tab" title="Open in a browser tab">
   </form>
-  <div id="tree" title="Use Ctrl + Shift + L to focus tree panel.
-Use Arrow Up and Down to navigate nodes.
-Use Arrow Left and Right to open and collapse a directory
-Use Alt + Enter to select the new node (alt disables the default behaviour of opening the bookmark in a browser tab).
-Use Shift + Enter or Ctrl + Enter for range selection.
-Use Enter to open the selected node." tabindex="-1"></div>
+  <div id="tree" tabindex="-1"></div>
   <form id="results">
     <template>
       <tr>
@@ -101,6 +92,25 @@ Use Enter to open the selected node." tabindex="-1"></div>
     </div>
     <span></span>
     <input type="button" value="Bookmark Manager" data-cmd="bookmark-manager">
+    <dialog id="tips" popover>
+      <b>Searching Tips:</b>
+      <ul>
+        <li>Use <code>fuzzy:</code> to perform a fuzzy search.</li>
+        <li>Use <code>root:id query</code> to search within a specific directory.</li>
+        <li>Press <strong>Enter</strong> to move focus to the active item in the search results.</li>
+        <li>Press <strong>Ctrl + F</strong> to focus this search box.</li>
+      </ul>
+      <b>Navigation Tips:</b>
+      <ul>
+        <li>Press <strong>Ctrl + Shift + L</strong> to focus the bookmarks tree.</li>
+        <li>Use <strong>↑</strong> and <strong>↓</strong> to move between bookmarks.</li>
+        <li>Use <strong>←</strong> and <strong>→</strong> to collapse or expand folders.</li>
+        <li>Press <strong>Alt + Enter</strong> to select the current item. Holding <strong>Alt</strong> prevents the default action of opening the bookmark in a browser tab.</li>
+        <li>Use <strong>Shift + Enter</strong> or <strong>Ctrl + Enter</strong> to select a range of items.</li>
+        <li>Press <strong>Enter</strong> to open the selected bookmark.</li>
+      </ul>
+    </dialog>
+    <input type="button" value="Tips" popovertarget="tips">
   </div>
   <div id="properties">
     <form id="title" autocomplete="off"></form>
