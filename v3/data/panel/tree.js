@@ -18,6 +18,21 @@ function getRoot() {
   return /Firefox/.test(navigator.userAgent) ? 'root________' : '0';
 }
 
+// id and settings of the virtual "Most Recent" folder (display-only)
+const RECENT_ID = 'recent-virtual';
+const RECENT_PREFIX = RECENT_ID + '-';
+
+// tree node ID -> real bookmark ID (prefixed IDs belong to the virtual folder)
+const recentRealId = id => id.startsWith(RECENT_PREFIX) ? id.slice(RECENT_PREFIX.length) : id;
+
+const recentPrefs = () => new Promise(resolve => chrome.storage.local.get({
+  recent: true,
+  'recent-count': 10
+}, prefs => resolve({
+  enabled: prefs.recent === true,
+  count: Math.min(200, Math.max(1, parseInt(prefs['recent-count']) || 10))
+})));
+
 const manager = {
   action: null,
   async copy() {
@@ -49,6 +64,10 @@ const manager = {
     const nodes = [];
     for (const id of tree.jstree('get_selected')) {
       const node = tree.jstree('get_node', id);
+      // the virtual "Most Recent" folder has no real counterpart
+      if (node.id === 'recent-virtual') {
+        continue;
+      }
       const n = {
         id,
         text: node.text,
@@ -82,7 +101,11 @@ const manager = {
     };
   },
   cut() {
-    const ids = tree.jstree('get_selected');
+    const ids = tree.jstree('get_selected').filter(id => {
+      const node = tree.jstree('get_node', id);
+      // the virtual folder and its display nodes cannot be cut
+      return node.id !== RECENT_ID && node.parent !== RECENT_ID;
+    });
     manager.action = {
       command: 'cut',
       ids
@@ -91,6 +114,14 @@ const manager = {
   async paste() {
     const ids = tree.jstree('get_selected');
     const node = tree.jstree('get_node', ids[0]);
+
+    // the virtual "Most Recent" folder is read-only
+    if (node && node.id === 'recent-virtual') {
+      return notify.inline('Paste is not allowed inside the "Most Recent" folder');
+    }
+    if (node && node.parent === 'recent-virtual') {
+      return notify.inline('Paste is not allowed inside the "Most Recent" folder');
+    }
 
     const isDir = ['folder', 'd_folder'].includes(node.type);
     const parentId = isDir ? node.id : node.parent;
@@ -218,6 +249,24 @@ if (localStorage.getItem('sort') === 'true') {
 
 tree.element = id => $('#' + id);
 
+// walks up the parent chain; resolves [id, parent, ..., root]
+tree.hierarchy = id => new Promise(resolve => {
+  const ids = [];
+  const up = id => {
+    ids.push(id);
+    chrome.bookmarks.get(id, arr => {
+      const node = arr[0];
+      if (node.parentId) {
+        up(node.parentId);
+      }
+      else {
+        resolve(ids);
+      }
+    });
+  };
+  up(id);
+});
+
 tree.activate = () => {
   try {
     const ids = tree.jstree('get_selected');
@@ -256,6 +305,9 @@ tree.jstree({
     },
     'd_folder': {
       'icon': 'd_folder'
+    },
+    'recent_folder': {
+      'icon': 'recent_folder'
     }
   },
   'plugins': tree.plugins,
@@ -268,12 +320,25 @@ tree.jstree({
   'core': {
     // Content Security Policy: The page’s settings blocked the loading of a resource at blob:moz-extension://
     'worker': !/Firefox/.test(navigator.userAgent),
-    'check_callback': (operation, node) => {
+    'check_callback': (operation, node, node_parent) => {
       // do not allow drag and drop in sort mode
       if (localStorage.getItem('sort') === 'true' && operation === 'move_node') {
         return false;
       }
+      // do not allow any modification of the virtual "Most Recent" folder itself
+      if (node && node.id === RECENT_ID) {
+        return false;
+      }
+      // do not allow dropping or creating content inside the virtual folder
+      if (['move_node', 'copy_node', 'create_node'].includes(operation) &&
+          node_parent && node_parent.id === RECENT_ID) {
+        return false;
+      }
       if (operation === 'move_node') {
+        // display nodes of the virtual "Most Recent" folder can be dragged into real directories
+        if (node.parent === RECENT_ID) {
+          return true;
+        }
         // do not allow moving of the root elements
         // do not allow moving to the root
         return node.data.drag;
@@ -344,10 +409,75 @@ tree.jstree({
           }]);
         }
       }
+      else if (obj.id === RECENT_ID) {
+        // contents of the virtual "Most Recent" folder (display-only copies)
+        const {count} = await recentPrefs();
+        const nodes = (await chrome.bookmarks.getRecent(count))
+          .filter(node => node.url && node.url.startsWith('place:') === false)
+          .sort((a, b) => (b.dateAdded || 0) - (a.dateAdded || 0));
+
+        cb(nodes.map(node => ({
+          text: tree.string.escape(node.title),
+          // prefixed ID keeps the tree model unique when the bookmark is also listed in its real folder
+          id: RECENT_PREFIX + node.id,
+          type: 'file',
+          icon: utils.favicon(node.url),
+          children: false,
+          a_attr: { // open with middle-click
+            href: node.url
+          },
+          data: {
+            type: node.type || 'bookmark',
+            index: node.index,
+            dateGroupModified: node.dateGroupModified,
+            dateAdded: node.dateAdded,
+            url: node.url,
+            feed: false,
+            drag: false,
+            realId: node.id
+          }
+        })));
+      }
       else {
         const nodes = await chrome.bookmarks.getChildren(obj.id === '#' ? getRoot() : obj.id);
 
+        // virtual "Most Recent" folder on top of the root level
+        if (obj.id === '#') {
+          const prefs = await recentPrefs();
+          if (prefs.enabled) {
+            nodes.unshift({
+              id: RECENT_ID,
+              title: 'Most Recent',
+              type: 'folder',
+              parentId: obj.id,
+              children: 0
+            });
+          }
+        }
+
         cb(nodes.map(node => {
+          // the virtual "Most Recent" folder cannot be edited, moved, or sorted
+          if (node.id === RECENT_ID) {
+            return {
+              text: tree.string.escape(node.title),
+              id: RECENT_ID,
+              type: 'recent_folder',
+              icon: null,
+              children: true,
+              a_attr: {
+                href: '#'
+              },
+              data: {
+                type: 'folder',
+                virtual: true,
+                url: '',
+                drag: false
+              },
+              state: {
+                loaded: false
+              }
+            };
+          }
           const feed = tree.isFeed(node.url);
           const children = !node.url || feed === true;
           const drag = node.parentId !== '0' && node.parentId !== 'root________';
@@ -385,6 +515,33 @@ tree.jstree({
   },
   'contextmenu': {
     'items': node => {
+      // read-only menu for the virtual "Most Recent" folder
+      if (node.id === RECENT_ID) {
+        const items = {};
+        const submenu = {};
+        submenu['Copy ID'] = {
+          'label': 'Copy ID',
+          'action': () => {
+            utils.copy(RECENT_ID);
+          }
+        };
+        items['Copy Properties'] = {
+          'label': 'Copy Properties',
+          submenu
+        };
+        items['Search or Validate Bookmarks'] = {
+          'separator_before': true,
+          'label': 'Search or Validate Bookmarks',
+          'action': () => {
+            const input = document.querySelector('#search input');
+            input.value = 'root:' + RECENT_ID + ' ';
+            input.dispatchEvent(new Event('search'));
+            input.focus();
+          }
+        };
+        return items;
+      }
+
       const items = {};
 
       {
@@ -440,6 +597,20 @@ tree.jstree({
           });
         }
       };
+      if (node.parent === RECENT_ID) {
+        // reveal and select the bookmark in its actual place
+        items['Select in Tree'] = {
+          'separator_before': true,
+          'label': 'Select in Tree',
+          'action': () => {
+            tree.hierarchy(recentRealId(node.id)).then(ids => {
+              window.dispatchEvent(new CustomEvent('tree:open-array', {
+                detail: {nodes: ids}
+              }));
+            });
+          }
+        };
+      }
       if (node.data.url) {
         items['Open'] = {
           'label': 'Open',
@@ -472,9 +643,10 @@ tree.jstree({
           }
         };
       }
+      const recent = node.parent === RECENT_ID;
       if (node.data.drag || node.data.url) {
         const submenu = {};
-        if (node.data.drag) {
+        if (node.data.drag || recent) {
           submenu['Rename Title'] = {
             'label': 'Rename Title',
             'action': () => dispatchEvent(new Event('properties:select-title'))
@@ -492,7 +664,7 @@ tree.jstree({
           submenu
         };
       }
-      if (node.data.drag) {
+      if (node.data.drag || recent) {
         items['Delete Bookmark'] = {
           'label': 'Delete Bookmark',
           'action': () => document.querySelector('#toolbar [data-cmd="delete"]').click()
@@ -503,7 +675,7 @@ tree.jstree({
         'label': 'Search or Validate Bookmarks',
         'action': () => {
           const input = document.querySelector('#search input');
-          const ids = tree.jstree('get_selected');
+          const ids = tree.jstree('get_selected').map(recentRealId);
           if (ids.length > 1) {
             input.value = (node.data.url, 'id:') + ids.join(',');
           }
@@ -577,6 +749,18 @@ tree.jstree({
   'sort': function(a, b) {
     a = this.get_node(a);
     b = this.get_node(b);
+
+    // keep the virtual "Most Recent" folder on top of the root level
+    if (a.id === 'recent-virtual') {
+      return -1;
+    }
+    if (b.id === 'recent-virtual') {
+      return 1;
+    }
+    // keep the "Most Recent" listing sorted by date (newest first)
+    if (a.parent === 'recent-virtual' && b.parent === 'recent-virtual') {
+      return 0;
+    }
 
     if (a.data.url && !b.data.url) {
       return 1;
@@ -696,20 +880,69 @@ tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
   }
   else {
     let index = data.position;
-    if (data.position > data.old_position) {
+    // the +1 offset is only applicable when reordering within the same directory
+    if (data.old_parent === data.parent && data.position > data.old_position) {
       if (/Firefox/.test(navigator.userAgent) === false) {
         index += 1;
       }
     }
-    chrome.bookmarks.move(data.node.id, {
-      parentId: data.parent,
-      index
-    }, () => {
+    // display nodes carry prefixed IDs; a move out of the virtual folder releases the real bookmark
+    const realId = recentRealId(data.node.id);
+    const isOut = data.old_parent === RECENT_ID;
+
+    // common post-move fix-up
+    const after = bookmark => {
       const lastError = chrome.runtime.lastError;
       if (lastError) {
         notify.inline('[Refresh Required] ' + lastError.message);
+        return;
       }
-    });
+      if (data.old_parent !== RECENT_ID) { // plain move of a real node
+        return;
+      }
+      // 1. undo the visual drop of the display node wherever it landed
+      tree.jstree('delete_node', data.node.id);
+      // 2. the real directory keeps a stale copy when it is loaded -> drop it
+      if (tree.jstree('get_node', bookmark.id)) {
+        tree.jstree('delete_node', bookmark.id);
+      }
+      // 3. render the moved bookmark at its final position if the directory is visible
+      if (tree.jstree('is_loaded', bookmark.parentId)) {
+        tree.jstree('create_node', bookmark.parentId, {
+          text: tree.string.escape(bookmark.title),
+          id: bookmark.id,
+          type: 'file',
+          icon: utils.favicon(bookmark.url),
+          children: false,
+          a_attr: { // open with middle-click
+            href: bookmark.url
+          },
+          data: {
+            type: 'bookmark',
+            index: bookmark.index,
+            dateGroupModified: bookmark.dateGroupModified,
+            dateAdded: bookmark.dateAdded,
+            url: bookmark.url,
+            feed: false,
+            drag: true
+          }
+        }, bookmark.index);
+      }
+    };
+
+    if (isOut) {
+      chrome.bookmarks.get(realId, ([prev]) => {
+        // dropping into the bookmark's own directory is just a rearrangement
+        if (prev.parentId === data.parent && data.position > prev.index &&
+            /Firefox/.test(navigator.userAgent) === false) {
+          index += 1;
+        }
+        chrome.bookmarks.move(realId, {parentId: data.parent, index}, after);
+      });
+    }
+    else {
+      chrome.bookmarks.move(data.node.id, {parentId: data.parent, index}, after);
+    }
   }
 });
 
@@ -816,3 +1049,41 @@ tree.on('paste', e => {
     notify.inline(e.message);
   });
 });
+
+// keep the "Most Recent" folder in sync while the panel is open
+{
+  let timer = null;
+  const refresh = () => {
+    const node = tree.jstree('get_node', RECENT_ID);
+    // only refresh while the directory is expanded; a collapsed one reloads on expand anyway
+    if (node && node.state && node.state.opened) {
+      tree.jstree('refresh_node', RECENT_ID);
+    }
+  };
+  const schedule = () => {
+    clearTimeout(timer);
+    timer = setTimeout(refresh, 250);
+  };
+  for (const name of ['onCreated', 'onRemoved', 'onMoved', 'onChanged']) {
+    chrome.bookmarks[name].addListener(schedule);
+  }
+  // options page changes
+  chrome.storage.onChanged.addListener((ps, area) => {
+    if (area !== 'local' || (ps.recent === undefined && ps['recent-count'] === undefined)) {
+      return;
+    }
+    if (ps.recent) {
+      // visibility changed -> rebuild the root level
+      tree.jstree(true).refresh();
+    }
+    else {
+      schedule();
+    }
+  });
+  // collapsing the folder drops its cache so that the next expand fetches fresh data
+  tree.on('close_node.jstree', (e, data) => {
+    if (data.node.id === RECENT_ID) {
+      data.node.state.loaded = false;
+    }
+  });
+}

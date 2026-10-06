@@ -109,7 +109,8 @@ input:disabled {
   opacity: 0;
 }
 .d_folder,
-.folder {
+.folder,
+.recent_folder {
   background-position: center !important;
   background-size: 20px;
 }
@@ -118,6 +119,9 @@ input:disabled {
 }
 .d_folder {
   background-image: url("icons/d_folder.svg") !important;
+}
+.recent_folder {
+  background-image: url("icons/recent.svg") !important;
 }
 .menu-button {
   position: relative;

@@ -56,24 +56,6 @@
       });
     });
   }
-  function hierarchy(id) {
-    return new Promise(resolve => {
-      const ids = [];
-      function up(id) {
-        ids.push(id);
-        chrome.bookmarks.get(id, arr => {
-          const node = arr[0];
-          if (node.parentId) {
-            up(node.parentId);
-          }
-          else {
-            resolve(ids);
-          }
-        });
-      }
-      up(id);
-    });
-  }
   // prevent old searches from populating
   let index = 0;
 
@@ -147,11 +129,23 @@
         const id = value.replace(/root:/, '').split(' ')[0];
         const term = value.replace(/root:[^ ]+/, '').toLowerCase().trim();
         const nodes = [];
-        const search = id => new Promise(resolve => chrome.bookmarks.getChildren(id, async nds => {
-          nodes.push(...nds.filter(n => n.url));
-          await Promise.all(nds.filter(n => !n.url).map(n => search(n.id)));
-          resolve();
-        }));
+        const search = id => new Promise(resolve => {
+          // virtual "Most Recent" folder is not a real directory
+          if (id === 'recent-virtual') {
+            chrome.storage.local.get({'recent-count': 10}, prefs => {
+              chrome.bookmarks.getRecent(Math.max(1, prefs['recent-count']), recents => {
+                nodes.push(...recents.filter(n => n.url));
+                resolve();
+              });
+            });
+            return;
+          }
+          chrome.bookmarks.getChildren(id, async nds => {
+            nodes.push(...nds.filter(n => n.url));
+            await Promise.all(nds.filter(n => !n.url).map(n => search(n.id)));
+            resolve();
+          });
+        });
         if (id) {
           search(id).then(() => {
             if (term) {
@@ -217,7 +211,7 @@
         [...tbody.querySelectorAll('.selected')].forEach(tr => tr.classList.remove('selected'));
         tr.classList.add('selected');
         // displaying in tree view
-        hierarchy(id).then(nodes => {
+        tree.hierarchy(id).then(nodes => {
           window.dispatchEvent(new CustomEvent('tree:open-array', {
             detail: {
               nodes

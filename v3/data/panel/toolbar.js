@@ -19,7 +19,16 @@ document.addEventListener('click', e => {
   }
   else if (cmd === 'delete') {
     const ids = tree.jstree('get_selected');
-    const nodes = ids.map(id => tree.jstree('get_node', id));
+    // the virtual "Most Recent" folder is display-only and cannot be removed
+    const nodes = ids.map(id => tree.jstree('get_node', id))
+      .filter(node => node.id !== RECENT_ID);
+
+    if (nodes.length !== ids.length) {
+      notify.inline('The "Most Recent" folder is display-only');
+    }
+    if (nodes.length === 0) {
+      return;
+    }
 
     notify.confirm(`Are you sure you want to delete:
 
@@ -27,8 +36,10 @@ document.addEventListener('click', e => {
       if (a) {
         nodes.forEach(node => {
           const isDir = ['folder', 'd_folder'].includes(node.type);
+          // display nodes of the virtual folder carry prefixed IDs
+          const bid = node.data.realId || node.id;
 
-          chrome.bookmarks[isDir ? 'removeTree' : 'remove'](node.id, () => {
+          chrome.bookmarks[isDir ? 'removeTree' : 'remove'](bid, () => {
             // jstree
             tree.jstree('select_node', node.parent);
             if (tree.jstree('delete_node', node.id) === false) {
@@ -37,7 +48,7 @@ document.addEventListener('click', e => {
             }
             // results
             const results = document.querySelector('#results tbody');
-            const rtr = results.querySelector(`[data-id="${node.id}"]`);
+            const rtr = results.querySelector(`[data-id="${bid}"]`);
             if (rtr) {
               rtr.parentNode.removeChild(rtr);
             }
@@ -56,6 +67,10 @@ document.addEventListener('click', e => {
     }
     const id = ids[0];
     const node = tree.jstree('get_node', id);
+    // the virtual "Most Recent" folder is display-only
+    if (node.id === RECENT_ID || node.parent === RECENT_ID) {
+      return notify.inline('Please select a real directory first');
+    }
     const isDir = ['folder', 'd_folder'].includes(node.type);
     const parentId = isDir ? node.id : node.parent;
 

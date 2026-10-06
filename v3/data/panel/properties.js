@@ -34,14 +34,15 @@ properties.addEventListener('submit', async e => {
 
   for (const id of ids) {
     try {
-      await chrome.bookmarks.update(id, prp);
+      // display nodes of the virtual "Most Recent" folder carry prefixed IDs
+      await chrome.bookmarks.update(recentRealId(id), prp);
 
       input.dataset.value = input.value;
 
       tr.querySelector('[type=submit]').disabled = true;
       // updating search view
       const results = document.querySelector('#results tbody');
-      const rtr = results.querySelector(`[data-id="${id}"]`);
+      const rtr = results.querySelector(`[data-id="${recentRealId(id)}"]`);
       if (rtr) {
         rtr.querySelector('td:nth-child(' + (form.id === 'title' ? 1 : 2) + ')').textContent = input.value;
       }
@@ -109,16 +110,18 @@ tree.on('select_node.jstree', (e, data) => {
     bubbles: true
   }));
 
-  title.disabled = data.node.id.startsWith('feed-') || data.node.data.drag === false;
+  // display nodes of the virtual "Most Recent" folder are editable (they point to real bookmarks)
+  const inRecent = data.node.parent === RECENT_ID;
+  title.disabled = data.node.id.startsWith('feed-') || (data.node.data.drag === false && !inRecent);
   const url = properties.querySelector('tr:nth-child(2) input');
-  url.disabled = data.node.data.drag === false || data.node.data.url === '';
+  url.disabled = (data.node.data.drag === false || data.node.data.url === '') && !inRecent;
   url.dataset.value = url.value = data.node.data.url;
   url.dispatchEvent(new Event('keyup', {
     bubbles: true
   }));
 
   const d = new Date(data.node.data.dateAdded);
-  properties.querySelector('tr:nth-child(3) span').textContent = d.toDateString() + ' ' + d.toLocaleTimeString();
+  properties.querySelector('tr:nth-child(3) span').textContent = isNaN(d) ? '' : d.toDateString() + ' ' + d.toLocaleTimeString();
 
   // disable on multiple select
   // properties.dataset.enable = data.selected.length === 1;

@@ -24,12 +24,17 @@ function restore() {
     width: 500,
     height: 600,
     context: '',
-    mode: 'popup'
+    mode: 'popup',
+    recent: true,
+    'recent-count': 10
   }, prefs => {
     document.getElementById('width').value = prefs.width;
     document.getElementById('height').value = prefs.height;
     document.getElementById('context').value = prefs.context;
     document.getElementById('mode').value = prefs.mode;
+    document.getElementById('recent').checked = prefs.recent;
+    document.getElementById('recent-count').value = prefs['recent-count'];
+    document.getElementById('recent-count').disabled = prefs.recent === false;
   });
 }
 
@@ -49,7 +54,9 @@ function save() {
     width: Math.max(300, document.getElementById('width').value),
     height: Math.max(400, document.getElementById('height').value),
     context: document.getElementById('context').value,
-    mode: document.getElementById('mode').value
+    mode: document.getElementById('mode').value,
+    recent: document.getElementById('recent').checked,
+    'recent-count': Math.min(200, Math.max(1, parseInt(document.getElementById('recent-count').value) || 10))
   };
 
   chrome.storage.local.set(prefs, () => {
@@ -60,6 +67,9 @@ function save() {
 }
 
 document.addEventListener('DOMContentLoaded', restore);
+document.getElementById('recent').addEventListener('change', e => {
+  document.getElementById('recent-count').disabled = e.target.checked === false;
+});
 document.getElementById('save').addEventListener('click', () => {
   try {
     save();
