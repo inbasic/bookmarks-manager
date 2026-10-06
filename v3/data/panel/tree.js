@@ -103,8 +103,9 @@ const manager = {
   cut() {
     const ids = tree.jstree('get_selected').filter(id => {
       const node = tree.jstree('get_node', id);
-      // the virtual folder and its display nodes cannot be cut
-      return node.id !== RECENT_ID && node.parent !== RECENT_ID;
+      // the virtual folder, its display nodes and the permanent
+      // (top level) nodes can neither be cut nor moved
+      return node.data && node.data.drag === true;
     });
     manager.action = {
       command: 'cut',
@@ -113,8 +114,11 @@ const manager = {
   },
   async paste() {
     const ids = tree.jstree('get_selected');
-    const node = tree.jstree('get_node', ids[0]);
+    const node = ids.length ? tree.jstree('get_node', ids[0]) : null;
 
+    if (!node) {
+      return notify.inline('Please select a node first');
+    }
     // the virtual "Most Recent" folder is read-only
     if (node && node.id === 'recent-virtual') {
       return notify.inline('Paste is not allowed inside the "Most Recent" folder');
@@ -132,27 +136,102 @@ const manager = {
     };
 
     if (manager.action.command === 'cut') {
+      const realParent = parentId === '#' ? getRoot() : parentId;
+      // insert anchor position; node.data.index may be stale, use the tree
       let index = 0;
       if (isDir === false) {
-        if ('index' in node.data) {
-          index = node.data.index + 1;
+        index = tree.jstree('get_node', node.parent).children.indexOf(node.id) + 1;
+      }
+      // make sure the destination is loaded so that all moves below are synchronous
+      // (already loaded directories are left untouched to preserve their state)
+      if (parentId !== '#' && isDir && !tree.jstree('is_loaded', parentId)) {
+        // do not wait forever in case loading fails
+        await Promise.race([
+          new Promise(resolve => tree.jstree('load_node', parentId, resolve)),
+          new Promise(resolve => setTimeout(resolve, 5000))
+        ]);
+      }
+      // let the tree render the final arrangement first
+      let refused = false;
+      for (const id of manager.action.ids) {
+        const target = tree.jstree('get_node', id);
+        if (target) {
+          target.data = target.data || {};
+          // the programmatic move is handled below; the move handler must skip it
+          target.data.syncMove = true;
+          if (tree.jstree().move_node(id, parentId, index) === false) {
+            // jsTree declined (sort mode); keep the browser move alive below
+            refused = true;
+            delete target.data.syncMove;
+          }
+        }
+        index += 1;
+      }
+      // clear flags of moves that jsTree refused to perform
+      for (const id of manager.action.ids) {
+        const target = tree.jstree('get_node', id);
+        if (target && target.data) {
+          delete target.data.syncMove;
         }
       }
-      for (const id of manager.action.ids) {
-        await chrome.bookmarks.move(id, {
-          parentId,
-          index
-        });
-        tree.jstree().move_node(id, parentId, index);
-        index += 1;
+      if (refused) {
+        // jsTree kept the sorted view; move in the browser and refresh
+        const children = await chrome.bookmarks.getChildren(realParent);
+        for (const id of manager.action.ids) {
+          if (children.includes(id)) {
+            continue;
+          }
+          const moved = await chrome.bookmarks.move(id, {
+            parentId: realParent
+          });
+          const target = tree.jstree('get_node', id);
+          if (target && moved) {
+            target.data.index = moved.index;
+          }
+        }
+        tree.jstree('refresh_node', realParent);
+        return;
+      }
+      // now sync the browser with the rendered order; left-only moves are
+      // safe for both Chrome and Firefox
+      const dir = tree.jstree('get_node', parentId);
+      const wanted = (dir ? dir.children : manager.action.ids).filter(id => id !== RECENT_ID);
+      const current = (await chrome.bookmarks.getChildren(realParent)).map(n => n.id);
+      try {
+        for (let j = 0; j < wanted.length; j += 1) {
+          const id = wanted[j];
+          const i = current.indexOf(id);
+          if (i === j) {
+            continue;
+          }
+          // i === -1 means the bookmark is not in this directory yet
+          const result = await chrome.bookmarks.move(id, {
+            parentId: realParent,
+            index: j
+          });
+          const target = tree.jstree('get_node', id);
+          if (target && result) {
+            target.data.index = result.index;
+          }
+          if (i !== -1) {
+            current.splice(i, 1);
+          }
+          current.splice(j, 0, id);
+        }
+      }
+      catch (e) {
+        console.error(e);
+        notify.inline(e.message || 'Cannot complete the move');
+        tree.jstree('refresh_node', realParent);
       }
     }
     else if (manager.action.command === 'copy') {
       let index = 0;
       if (isDir === false) {
-        if ('index' in node.data) {
-          index = node.data.index + 1;
-        }
+        // create() rejects out of range indexes, use the live bookmark order
+        const children = await chrome.bookmarks.getChildren(parentId === '#' ? getRoot() : parentId);
+        const at = children.findIndex(n => n.id === node.id);
+        index = Math.max(0, at) + 1;
       }
       const add = async (n, parentId, index) => {
         const nn = await chrome.bookmarks.create({
@@ -879,6 +958,19 @@ tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
     });
   }
   else {
+    // programmatic move from manager.paste(): the browser is synced below
+    if (data.node.data && data.node.data.syncMove) {
+      data.node.data.syncMove = false;
+      const parent = tree.jstree('get_node', data.parent);
+      let pos = parent.children.indexOf(data.node.id);
+      // the virtual "Most Recent" folder has no browser counterpart
+      if (parent.children.indexOf(RECENT_ID) !== -1 &&
+          pos > parent.children.indexOf(RECENT_ID)) {
+        pos -= 1;
+      }
+      data.node.data.index = pos;
+      return;
+    }
     let index = data.position;
     // the +1 offset is only applicable when reordering within the same directory
     if (data.old_parent === data.parent && data.position > data.old_position) {
@@ -895,7 +987,19 @@ tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
       const lastError = chrome.runtime.lastError;
       if (lastError) {
         notify.inline('[Refresh Required] ' + lastError.message);
+        // the tree renders the node as moved; bring both directories
+        // back in line with the actual bookmark order
+        if (data.parent !== '#') {
+          tree.jstree('refresh_node', data.parent);
+        }
+        if (data.old_parent !== data.parent) {
+          tree.jstree('refresh_node', data.old_parent);
+        }
         return;
+      }
+      // keep the stored position in sync for later operations
+      if (bookmark) {
+        data.node.data.index = bookmark.index;
       }
       if (data.old_parent !== RECENT_ID) { // plain move of a real node
         return;
@@ -932,16 +1036,29 @@ tree.on('move_node.jstree  copy_node.jstree', (e, data) => {
 
     if (isOut) {
       chrome.bookmarks.get(realId, ([prev]) => {
-        // dropping into the bookmark's own directory is just a rearrangement
+        // dropping into the bookmark's own directory is just a rearrangement;
+        // data.position counts the display copy, Chrome counts the node itself
+        // (pre-removal), Firefox counts the slot after removal
         if (prev.parentId === data.parent && data.position > prev.index &&
-            /Firefox/.test(navigator.userAgent) === false) {
-          index += 1;
+            /Firefox/.test(navigator.userAgent)) {
+          index -= 1;
         }
         chrome.bookmarks.move(realId, {parentId: data.parent, index}, after);
       });
     }
+    else if (data.parent === '#') { // the tree root is not a real directory
+      notify.inline('[Refresh Required] Cannot move to the tree root');
+      tree.jstree('refresh_node', data.old_parent);
+    }
     else {
-      chrome.bookmarks.move(data.node.id, {parentId: data.parent, index}, after);
+      // validate the requested position against the live tree to avoid
+      // a hard failure when the model got out of sync
+      chrome.bookmarks.getChildren(data.parent, children => {
+        chrome.bookmarks.move(data.node.id, {
+          parentId: data.parent,
+          index: Math.min(index, children.length)
+        }, after);
+      });
     }
   }
 });
