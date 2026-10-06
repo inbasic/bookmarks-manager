@@ -468,3 +468,76 @@ body:not([data-favicon="true"]) .favicon {
 #tips code {
   background-color: rgba(125, 125, 125, 0.2);
 }
+
+/* sort dialog */
+#sort {
+  border: solid 1px var(--border);
+  background-color: var(--bg-one);
+  color: var(--fg);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  min-width: 220px;
+}
+#sort::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+}
+#sort ul.keys {
+  list-style-type: none;
+  margin: 5px 0;
+  padding: 0;
+}
+#sort ul.keys li {
+  display: flex;
+  align-items: center;
+  padding: 2px 0;
+}
+#sort ul.keys li span {
+  flex: 1;
+}
+#sort ul.keys li input {
+  min-height: 22px;
+  min-width: 24px;
+  margin: 0 1px;
+  padding: 0;
+  cursor: pointer;
+}
+#sort div.keys {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+#sort div.keys span {
+  flex: 1;
+}
+#sort label {
+  display: flex;
+  align-items: center;
+  margin: 3px 0;
+}
+#sort .buttons {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+#sort .buttons input {
+  margin-left: 5px;
+  min-width: 70px;
+}
+#sort input[type="submit"] {
+  background-color: #3367d6;
+  color: #fff;
+  border: none;
+  appearance: none;
+  border-radius: 3px;
+  font-size: 12px;
+}
+#sort input[type="submit"]:disabled {
+  background-color: #ccc;
+}
+#sort select {
+  height: var(--e-hight);
+  border: solid 1px var(--border);
+  background-color: var(--bg-one);
+  color: var(--fg);
+  font-size: 13px;
+}

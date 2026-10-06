@@ -112,6 +112,32 @@
     </dialog>
     <input type="button" value="Tips" popovertarget="tips">
   </div>
+  <dialog id="sort">
+    <form method="dialog">
+      <b>Sort Keys:</b>
+      <ul class="keys"></ul>
+      <div class="keys">
+        <span>Add key</span>
+        <select data-id="add">
+          <option value="">Select...</option>
+          <option value="name">Name</option>
+          <option value="domain">Domain</option>
+          <option value="link">Link</option>
+          <option value="date">Date</option>
+        </select>
+      </div>
+      <label>
+        <input type="checkbox" data-id="dirs-top"> Place directories on top
+      </label>
+      <label>
+        <input type="checkbox" data-id="recursive"> Apply to sub-directories (recursive)
+      </label>
+      <div class="buttons">
+        <input type="button" value="Cancel" data-id="cancel">
+        <input type="button" value="Save" data-id="save">
+      </div>
+    </form>
+  </dialog>
   <div id="properties">
     <form id="title" autocomplete="off"></form>
     <form id="url" autocomplete="off"></form>
@@ -160,5 +186,6 @@
   <script src="properties.js"></script>
   <script src="notification.js"></script>
   <script src="toolbar.js"></script>
+  <script src="sort.js"></script>
 </body>
 </html>

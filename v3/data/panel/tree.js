@@ -8,7 +8,7 @@
  * GitHub: https://github.com/inbasic/bookmarks-manager/
 */
 
-/* global $, utils, notify */
+/* global $, utils, notify, sorter */
 'use strict';
 
 function getRoot() {
@@ -515,9 +515,48 @@ tree.jstree({
           input.focus();
         }
       };
+      if (['folder', 'd_folder'].includes(node.type)) {
+        // checkable items keep the menu open after each click
+        const toggle = (name, title, flag) => ({
+          'label': () => (flag.on() ? '☑ ' : '☐ ') + title,
+          '_class': 'sorter-' + name,
+          'action': () => {
+            const value = flag.on() === false;
+            localStorage.setItem(flag.key, value);
+            // update the label in place, do not close the menu
+            const li = document.querySelector('.vakata-context li.sorter-' + name);
+            if (li) {
+              li.querySelector('a').lastChild.textContent = (value ? '☑ ' : '☐ ') + title;
+            }
+            return false;
+          }
+        });
+        items['Sort'] = {
+          'label': 'Sort',
+          'separator_before': true,
+          'submenu': {
+            'Sort A-Z': {
+              'label': 'Sort A-Z',
+              'action': () => sorter.run(node, 'asc')
+            },
+            'Sort Z-A': {
+              'label': 'Sort Z-A',
+              'action': () => sorter.run(node, 'desc')
+            },
+            'Dirs on Top': toggle('dirs-top', 'Place directories on top', sorter.flags['dirs-top']),
+            'Recursive': toggle('recursive', 'Recursive', sorter.flags.recursive),
+            'Configure Sort': {
+              'label': 'Configure Sort',
+              'separator_before': true,
+              'action': () => sorter.configure()
+            }
+          }
+        };
+      }
       if (!node.data.url) {
         items['Set as Root'] = {
           'label': 'Set as Root',
+          'separator_before': true,
           'action': () => {
             const ids = tree.jstree('get_selected');
 
